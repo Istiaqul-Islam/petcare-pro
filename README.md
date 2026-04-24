@@ -78,7 +78,7 @@ A comprehensive doctor management system with integrated mapping capabilities.
 ### 2. Installation
 
 ```bash
-git clone https://github.com/Imtiazul-Islam/petcare-pro-main.git
+git clone https://github.com/Istiaqul-Islam/petcare-pro.git
 cd petcare-pro-main
 npm install
 ```
