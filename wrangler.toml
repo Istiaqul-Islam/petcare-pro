@@ -1,0 +1,23 @@
+name = "petcare-pro"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# Turso SQLite Database
+# Set TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN in Cloudflare Pages environment
+
+# Environment variables for production
+[vars]
+NODE_ENV = "production"
+DATABASE_MODE = "cloud"
+TURSO_CONNECTION_URL = "libsql://petcaredb-istiaqul-islam.aws-ap-northeast-1.turso.io"
+CLOUDINARY_CLOUD_NAME = "dsvx2gyhs"
+NEXT_PUBLIC_APP_URL = "https://petcare-pro.pages.dev"
+# Note: The following sensitive variables MUST be set as SECRETS in the 
+# Cloudflare Pages dashboard (Settings > Environment Variables):
+# - TURSO_AUTH_TOKEN
+# - IMGBB_API_KEY
+
+[ai]
+binding = "AI"
+
