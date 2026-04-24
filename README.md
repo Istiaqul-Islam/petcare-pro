@@ -1,4 +1,4 @@
-# 🐾 PetCare Pro - Next-Gen Pet Care & AI Diagnostics
+# 🐾 PetCare Pro - Next-Gen Pet Care & AI Diagnostics 
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://petcare-pro.pages.dev)
 [![Stack](https://img.shields.io/badge/Stack-Next.js%2015%20|%20Turso%20|%20Cloudflare-blue)](https://petcare-pro.pages.dev)
