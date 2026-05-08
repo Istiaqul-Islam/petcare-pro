@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 
 const HFS_API_URL = "https://istiaq666-predict-disease.hf.space/predict";
