@@ -49,8 +49,6 @@ data/
 *.tsbuildinfo
 next-env.d.ts
 local-*
-.claude
-.z-ai-config
 dev.log
 test
 prompt
