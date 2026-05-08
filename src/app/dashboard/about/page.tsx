@@ -106,18 +106,21 @@ export default function AboutPage() {
     {
       name: "Istiaqul Islam Ifti",
       title: "CSE 031 08169",
+      dept: "Dept. of Computer Science and Engineering",
       role: "Designer & Developer",
       image: "/istiaq.jpeg",
     },
     {
       name: "Pushpita Dey",
       title: "CSE 031 08170",
+      dept: "Dept. of Computer Science and Engineering",
       role: "Designer & Developer",
       image: "/puspita.jpg",
     },
     {
       name: "Tasmia Habib",
       title: "CSE 031 08199",
+      dept: "Dept. of Computer Science and Engineering",
       role: "Designer & Developer",
       image: "/tasmia.jpg",
     },

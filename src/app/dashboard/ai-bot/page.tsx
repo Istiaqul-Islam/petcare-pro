@@ -74,7 +74,7 @@ export default function AIBotPage() {
     }
   }, [messages, loading]);
 
-  // GSAP animations
+  // Initial GSAP animations (Mount only)
   useEffect(() => {
     // Header animations
     gsap.fromTo(
@@ -96,44 +96,45 @@ export default function AIBotPage() {
       { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 0.4, ease: "back.out(1.7)" }
     );
 
-    // Empty state animations
-    gsap.fromTo(
-      ".empty-state",
-      { opacity: 0, scale: 0.9 },
-      { opacity: 1, scale: 1, duration: 0.8, delay: 0.6, ease: "back.out(1.7)" }
-    );
+    // Empty state animations (if no messages)
+    if (messages.length === 0) {
+      gsap.fromTo(
+        ".empty-state",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.8, delay: 0.6, ease: "back.out(1.7)" }
+      );
 
-    gsap.fromTo(
-      ".empty-state-icon",
-      { scale: 0, rotation: -180 },
-      { scale: 1, rotation: 0, duration: 0.8, delay: 0.8, ease: "back.out(1.7)" }
-    );
+      gsap.fromTo(
+        ".empty-state-icon",
+        { scale: 0, rotation: -180 },
+        { scale: 1, rotation: 0, duration: 0.8, delay: 0.8, ease: "back.out(1.7)" }
+      );
 
-    gsap.fromTo(
-      ".empty-state-title",
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.6, delay: 1.0, ease: "power2.out" }
-    );
+      gsap.fromTo(
+        ".empty-state-title",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, delay: 1.0, ease: "power2.out" }
+      );
 
-    gsap.fromTo(
-      ".empty-state-description",
-      { opacity: 0, y: 15 },
-      { opacity: 1, y: 0, duration: 0.5, delay: 1.2, ease: "power2.out" }
-    );
+      gsap.fromTo(
+        ".empty-state-description",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.5, delay: 1.2, ease: "power2.out" }
+      );
 
-    // Suggested questions animations
-    gsap.fromTo(
-      ".suggested-question",
-      { opacity: 0, scale: 0.8 },
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "back.out(1.7)",
-        delay: 1.4
-      }
-    );
+      gsap.fromTo(
+        ".suggested-question",
+        { opacity: 0, scale: 0.8 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: "back.out(1.7)",
+          delay: 1.4
+        }
+      );
+    }
 
     // Sidebar animations
     gsap.fromTo(
@@ -167,109 +168,45 @@ export default function AIBotPage() {
       { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 1.2, ease: "back.out(1.7)" }
     );
 
-    // Message animations
-    if (messages.length > 0) {
-      gsap.fromTo(
-        ".message-container",
-        { opacity: 0, y: 30, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: "power2.out",
-          overwrite: "auto"
-        }
-      );
-    }
-
     // Interactive hover effects
-    const suggestedQuestions = document.querySelectorAll('.suggested-question');
-    suggestedQuestions.forEach(question => {
+    const suggestedQuestionsNodes = document.querySelectorAll('.suggested-question');
+    suggestedQuestionsNodes.forEach(question => {
       question.addEventListener('mouseenter', () => {
-        gsap.to(question, {
-          scale: 1.05,
-          y: -2,
-          duration: 0.2,
-          ease: "power2.out"
-        });
+        gsap.to(question, { scale: 1.05, y: -2, duration: 0.2, ease: "power2.out" });
       });
-      
       question.addEventListener('mouseleave', () => {
-        gsap.to(question, {
-          scale: 1,
-          y: 0,
-          duration: 0.2,
-          ease: "power2.out"
-        });
+        gsap.to(question, { scale: 1, y: 0, duration: 0.2, ease: "power2.out" });
       });
     });
 
-    const featureItems = document.querySelectorAll('.feature-item');
-    featureItems.forEach(item => {
+    const featureItemsNodes = document.querySelectorAll('.feature-item');
+    featureItemsNodes.forEach(item => {
       item.addEventListener('mouseenter', () => {
-        gsap.to(item, {
-          x: 5,
-          duration: 0.2,
-          ease: "power2.out"
-        });
+        gsap.to(item, { x: 5, duration: 0.2, ease: "power2.out" });
       });
-      
       item.addEventListener('mouseleave', () => {
-        gsap.to(item, {
-          x: 0,
-          duration: 0.2,
-          ease: "power2.out"
-        });
+        gsap.to(item, { x: 0, duration: 0.2, ease: "power2.out" });
       });
     });
-
-    // Chat input focus effect
-    const chatInput = document.querySelector('.chat-input');
-    if (chatInput) {
-      chatInput.addEventListener('focus', () => {
-        gsap.to('.chat-input-container', {
-          scale: 1.02,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-      
-      chatInput.addEventListener('blur', () => {
-        gsap.to('.chat-input-container', {
-          scale: 1,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-    }
-
-    // Send button hover effect
-    const sendButton = document.querySelector('.send-button');
-    if (sendButton) {
-      sendButton.addEventListener('mouseenter', () => {
-        gsap.to(sendButton, {
-          scale: 1.1,
-          rotation: 5,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-      
-      sendButton.addEventListener('mouseleave', () => {
-        gsap.to(sendButton, {
-          scale: 1,
-          rotation: 0,
-          duration: 0.2,
-          ease: "power2.out"
-        });
-      });
-    }
 
     return () => {
-      gsap.killTweensOf(".ai-header, .ai-header-icon, .chat-area, .empty-state, .empty-state-icon, .empty-state-title, .empty-state-description, .suggested-question, .features-card, .feature-item, .recent-topics-card, .disclaimer-card, .message-container, .chat-input-container, .send-button");
+      gsap.killTweensOf(".ai-header, .ai-header-icon, .chat-area, .empty-state, .empty-state-icon, .empty-state-title, .empty-state-description, .suggested-question, .features-card, .feature-item, .recent-topics-card, .disclaimer-card, .chat-input-container, .send-button");
     };
+  }, []); // Only once on mount
+
+  // Message specific GSAP animations
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Only animate the LATEST message container
+      const latestMessage = document.querySelector('.message-container:last-child');
+      if (latestMessage) {
+        gsap.fromTo(
+          latestMessage,
+          { opacity: 0, y: 20, scale: 0.98 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }
+        );
+      }
+    }
   }, [messages.length]);
 
   const handleSend = async () => {
@@ -331,7 +268,7 @@ export default function AIBotPage() {
   return (
     <div className="space-y-6 h-[calc(100vh-10rem)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 animate-in fade-in duration-500 ai-header">
+      <div className="flex items-center gap-4 ai-header">
         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 ai-header-icon">
           <Bot className="h-6 w-6 text-primary" />
         </div>
@@ -352,7 +289,7 @@ export default function AIBotPage() {
               className="flex-1 overflow-y-auto pr-4 space-y-6"
             >
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-20 animate-in zoom-in-95 duration-700 empty-state">
+                <div className="h-full flex flex-col items-center justify-center text-center py-20 empty-state">
                   <div className="relative mb-6">
                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
                     <Bot className="h-16 w-16 text-primary relative empty-state-icon" />
@@ -383,7 +320,7 @@ export default function AIBotPage() {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 message-container ${
+                      className={`flex gap-3 message-container ${
                         message.role === "user" ? "flex-row-reverse" : ""
                       }`}
                     >
@@ -474,7 +411,7 @@ export default function AIBotPage() {
                     </div>
                   ))}
                   {loading && (
-                    <div className="flex gap-3 animate-in fade-in duration-300">
+                    <div className="flex gap-3">
                       <Avatar className="h-9 w-9 shrink-0 border shadow-sm">
                         <AvatarFallback className="bg-primary text-primary-foreground">
                           <Bot className="h-5 w-5" />
@@ -494,7 +431,7 @@ export default function AIBotPage() {
             </div>
 
             {/* Input */}
-            <div className="border-t p-4 shrink-0 chat-input-container animate-in fade-in duration-300">
+            <div className="border-t p-4 shrink-0 chat-input-container">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -507,9 +444,9 @@ export default function AIBotPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={loading}
-                  className="flex-1 chat-input animate-in slide-in-from-bottom-2 duration-300"
+                  className="flex-1 chat-input"
                 />
-                <Button type="submit" disabled={loading || !input.trim()} className="send-button animate-in fade-in duration-300">
+                <Button type="submit" disabled={loading || !input.trim()} className="send-button">
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
@@ -518,14 +455,14 @@ export default function AIBotPage() {
         </Card>
 
         {/* Sidebar */}
-        <div className="space-y-4 animate-in fade-in duration-500">
-          <Card className="features-card animate-in slide-in-from-right-2 duration-500">
+        <div className="space-y-4">
+          <Card className="features-card">
             <CardHeader>
               <CardTitle className="text-sm">What I Can Help With</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {features.map((feature, i) => (
-                <div key={i} className="flex items-start gap-2 feature-item animate-in fade-in duration-300">
+                <div key={i} className="flex items-start gap-2 feature-item">
                   <feature.icon className="h-4 w-4 text-primary mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">{feature.title}</p>
@@ -538,7 +475,7 @@ export default function AIBotPage() {
             </CardContent>
           </Card>
 
-          <Card className="recent-topics-card animate-in slide-in-from-right-2 duration-500">
+          <Card className="recent-topics-card">
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -566,7 +503,7 @@ export default function AIBotPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 disclaimer-card animate-in slide-in-from-right-2 duration-700">
+          <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 disclaimer-card">
             <CardContent className="pt-4">
               <p className="text-xs text-yellow-800 dark:text-yellow-200">
                 <strong>Disclaimer:</strong> This AI assistant provides general
