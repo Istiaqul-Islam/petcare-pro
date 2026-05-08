@@ -97,24 +97,29 @@ export default function AboutPage() {
 
   const team = [
     {
-      name: "abcde",
-      role: "abcde",
-      image: null,
+      name: "Md Atik Ishrak",
+      title: "Lecturer",
+      dept: "Dept. of Computer Science and Engineering",
+      role: "Mentor",
+      image: "/atik.jpg",
     },
     {
-      name: "12345",
-      role: "12345",
-      image: null,
+      name: "Istiaqul Islam Ifti",
+      title: "CSE 031 08169",
+      role: "Designer & Developer",
+      image: "/istiaq.jpeg",
     },
     {
-      name: "abcde",
-      role: "abcde",
-      image: null,
+      name: "Pushpita Dey",
+      title: "CSE 031 08170",
+      role: "Designer & Developer",
+      image: "/puspita.jpg",
     },
     {
-      name: "12345",
-      role: "12345",
-      image: null,
+      name: "Tasmia Habib",
+      title: "CSE 031 08199",
+      role: "Designer & Developer",
+      image: "/tasmia.jpg",
     },
   ];
 
@@ -233,20 +238,37 @@ export default function AboutPage() {
       {/* Team */}
       <section>
         <h2 className="text-2xl font-bold text-center mb-8">Meet Our Team</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {team.map((member, i) => (
-            <Card key={i}>
-              <CardContent className="pt-6 text-center">
-                <div className="h-20 w-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
-                  <span className="text-2xl font-bold text-primary">
-                    {member.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </span>
+            <Card key={i} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-none bg-muted/20">
+              <CardContent className="pt-8 text-center space-y-4">
+                <div className="relative mx-auto h-32 w-32 rounded-2xl overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
+                  {member.image ? (
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-3xl font-bold text-primary">
+                        {member.name.split(" ").map((n) => n[0]).join("")}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-semibold">{member.name}</h3>
-                <p className="text-sm text-muted-foreground">{member.role}</p>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-lg">{member.name}</h3>
+                  {member.title && (
+                    <p className="text-xs font-bold text-primary uppercase tracking-wider">{member.title}</p>
+                  )}
+                  {"dept" in member && (
+                    <p className="text-[10px] text-muted-foreground font-medium">{member.dept}</p>
+                  )}
+                </div>
+                <Badge variant="secondary" className="px-4 py-1 rounded-full font-bold">
+                  {member.role}
+                </Badge>
               </CardContent>
             </Card>
           ))}

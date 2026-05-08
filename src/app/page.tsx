@@ -716,6 +716,34 @@ export default function LandingPage() {
     },
   ];
 
+  const team = [
+    {
+      name: "Md Atik Ishrak",
+      title: "Lecturer",
+      dept: "Dept. of Computer Science and Engineering",
+      role: "Mentor",
+      image: "/atik.jpg",
+    },
+    {
+      name: "Istiaqul Islam Ifti",
+      title: "CSE 031 08169",
+      role: "Designer & Developer",
+      image: "/istiaq.jpeg",
+    },
+    {
+      name: "Pushpita Dey",
+      title: "CSE 031 08170",
+      role: "Designer & Developer",
+      image: "/puspita.jpg",
+    },
+    {
+      name: "Tasmia Habib",
+      title: "CSE 031 08199",
+      role: "Designer & Developer",
+      image: "/tasmia.jpg",
+    },
+  ];
+
   if (!mounted || checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -1252,7 +1280,37 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Values */}
+          {/* Team */}
+          <div className="mb-16">
+            <h3 className="text-2xl font-bold text-center mb-8 section-title">
+              Meet Our Team
+            </h3>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {team.map((member, i) => (
+                <Card key={i} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-none bg-muted/20 about-feature">
+                  <CardContent className="pt-8 text-center space-y-4">
+                    <div className="relative mx-auto h-32 w-32 rounded-2xl overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-lg">{member.name}</h4>
+                      <p className="text-xs font-bold text-primary uppercase tracking-wider">{member.title}</p>
+                      {"dept" in member && (
+                        <p className="text-[10px] text-muted-foreground font-medium">{member.dept}</p>
+                      )}
+                    </div>
+                    <Badge variant="secondary" className="px-4 py-1 rounded-full font-bold">
+                      {member.role}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
           <div className="mb-16">
             <h3 className="text-2xl font-bold text-center mb-8 section-title">
               Our Values
