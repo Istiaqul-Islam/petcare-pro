@@ -148,7 +148,7 @@ export const MAX_VIDEO_DURATION = 30; // 30 seconds
 export const MAX_AUDIO_DURATION = 60; // 60 seconds
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"];
+export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
 export const ALLOWED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3"];
 
 // Social Reaction Types

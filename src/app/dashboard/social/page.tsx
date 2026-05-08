@@ -117,7 +117,7 @@ export default function SocialPage() {
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxUrl, setLightboxUrl] = useState("");
+  const [lightboxMedia, setLightboxMedia] = useState<{ url: string; type: "image" | "video" }>({ url: "", type: "image" });
 
   // Comments state
   const [commentsDialogOpen, setCommentsDialogOpen] = useState(false);
@@ -778,8 +778,8 @@ export default function SocialPage() {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
-  const openLightbox = (url: string) => {
-    setLightboxUrl(url);
+  const openLightbox = (url: string, type: "image" | "video" = "image") => {
+    setLightboxMedia({ url, type });
     setLightboxOpen(true);
   };
 
@@ -906,6 +906,7 @@ export default function SocialPage() {
                       {m.type === "video" && (
                         <video
                           src={m.url}
+                          playsInline
                           className="h-24 w-24 object-cover rounded-lg border shadow-sm"
                         />
                       )}
@@ -1006,7 +1007,8 @@ export default function SocialPage() {
               onReact={(type: string) => toggleReaction(post.id, type)}
               onComment={() => openCommentsDialog(post.id)}
               formatTime={formatTimeAgo}
-              onImageClick={openLightbox}
+              onImageClick={(url: string) => openLightbox(url, "image")}
+              onVideoClick={(url: string) => openLightbox(url, "video")}
               className="post-card-container"
               likeButtonClass="like-button"
               commentButtonClass="comment-button"
@@ -1040,11 +1042,21 @@ export default function SocialPage() {
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-none">
           <div className="relative w-full h-full min-h-[50vh] flex items-center justify-center">
-            <img
-              src={lightboxUrl}
-              alt=""
-              className="max-w-full max-h-[85vh] object-contain"
-            />
+            {lightboxMedia.type === "image" ? (
+              <img
+                src={lightboxMedia.url}
+                alt=""
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+            ) : (
+              <video
+                src={lightboxMedia.url}
+                controls
+                autoPlay
+                playsInline
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -1151,6 +1163,7 @@ function PostCard({
   onComment,
   formatTime,
   onImageClick,
+  onVideoClick,
   className,
 }: any) {
   const [showPicker, setShowPicker] = useState(false);
@@ -1238,12 +1251,19 @@ function PostCard({
             </div>
           )}
           {post.videos?.map((url: string, i: number) => (
-            <video
-              key={i}
-              src={url}
-              controls
-              className="w-full rounded-2xl shadow-md bg-black"
-            />
+            <div key={i} className="relative group cursor-zoom-in" onClick={() => onVideoClick(url)}>
+              <video
+                src={url}
+                controls
+                playsInline
+                className="w-full rounded-2xl shadow-md bg-black"
+              />
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white border-none hover:bg-black/70">
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
 
