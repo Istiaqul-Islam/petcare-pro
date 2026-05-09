@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
     let user: any = null;
     try {
       user = await queryDbFirst(
-        "SELECT id, email, name, avatar, phone, address, role, showPets, showEmail, createdAt, updatedAt FROM users WHERE id = ?",
+        "SELECT id, email, name, avatar, phone, address, role, isVerified, showPets, showEmail, createdAt, updatedAt FROM users WHERE id = ?",
         [sessionUser.userId]
       );
     } catch (e) {
       console.warn("showEmail column missing in GET user, falling back...");
       user = await queryDbFirst(
-        "SELECT id, email, name, avatar, phone, address, role, showPets, 0 as showEmail, createdAt, updatedAt FROM users WHERE id = ?",
+        "SELECT id, email, name, avatar, phone, address, role, isVerified, showPets, 0 as showEmail, createdAt, updatedAt FROM users WHERE id = ?",
         [sessionUser.userId]
       );
     }

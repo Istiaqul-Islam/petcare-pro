@@ -48,6 +48,7 @@ interface User {
   email: string;
   avatar: string | null;
   role: string;
+  isVerified: number;
 }
 
 const navItems = [
@@ -197,7 +198,15 @@ export default function DashboardLayout({
       const response = await fetch("/api/user");
       if (response.ok) {
         const data = (await response.json()) as { user?: User };
-        setUser(data.user || null);
+        const userData = data.user || null;
+        setUser(userData);
+        
+        // --- VERIFICATION CHECK ---
+        // If user is not verified, redirect to pending page
+        // (Except if they are already on the pending page)
+        if (userData && userData.isVerified === 0 && pathname !== "/auth/verification-pending") {
+          router.push("/auth/verification-pending");
+        }
       } else {
         router.push("/auth/login");
       }
@@ -210,10 +219,17 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
+      // 1. Sign out from Firebase client
+      const { signOut } = await import("firebase/auth");
+      await signOut(auth);
+
+      // 2. Sign out from our backend session
       await fetch("/api/auth/logout", { method: "POST" });
+      
       router.push("/");
-    } catch {
-      // Handle error
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
 

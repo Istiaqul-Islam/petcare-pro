@@ -153,262 +153,203 @@ export default function SocialPage() {
 
   useEffect(() => {
     if (posts.length > 0) {
-      gsap.fromTo(
-        ".post-card-container",
-        { opacity: 0, y: 30, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          overwrite: "auto",
+      const ctx = gsap.context(() => {
+        if (document.querySelector(".post-card-container")) {
+          gsap.fromTo(
+            ".post-card-container",
+            { opacity: 0, y: 30, scale: 0.95 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: "power2.out",
+              overwrite: "auto",
+            }
+          );
         }
-      );
+      });
+      return () => ctx.revert();
     }
   }, [posts.length]);
 
   useEffect(() => {
     if (!loading) {
-      // Header animations
-      gsap.fromTo(
-        ".social-header",
-        { opacity: 0, y: 30, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
-      );
-
-      gsap.fromTo(
-        ".social-subtitle",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
-      );
-
-      // Post creation area animations
-      gsap.fromTo(
-        ".post-creation-area",
-        { opacity: 0, y: 20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: 0.4, ease: "back.out(1.7)" }
-      );
-
-      gsap.fromTo(
-        ".post-textarea",
-        { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.6, delay: 0.6, ease: "power2.out" }
-      );
-
-      gsap.fromTo(
-        ".post-actions",
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.5, delay: 0.8, ease: "power2.out" }
-      );
-
-      // Tabs animations
-      gsap.fromTo(
-        ".social-tabs",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 1.0, ease: "power2.out" }
-      );
-
-      gsap.fromTo(
-        ".social-tab-trigger",
-        { opacity: 0, scale: 0.8 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "back.out(1.7)",
-          delay: 1.2
+      const ctx = gsap.context(() => {
+        // Header animations
+        if (document.querySelector(".social-header")) {
+          gsap.fromTo(
+            ".social-header",
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
+          );
         }
-      );
 
-      // Empty state animations
-      if (posts.length === 0) {
-        gsap.fromTo(
-          ".empty-social-state",
-          { opacity: 0, y: 30, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: 1.4, ease: "power2.out" }
-        );
-
-        gsap.fromTo(
-          ".empty-social-icon",
-          { scale: 0, rotation: -180 },
-          { scale: 1, rotation: 0, duration: 0.8, delay: 1.6, ease: "back.out(1.7)" }
-        );
-      }
-
-      // Interactive hover effects
-      const postCards = document.querySelectorAll('.post-card-container');
-      postCards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-          gsap.to(card, {
-            y: -8,
-            scale: 1.02,
-            boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          gsap.to(card, {
-            y: 0,
-            scale: 1,
-            boxShadow: "0 0 0 rgba(0,0,0,0)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-      });
-
-      // Post textarea focus effect
-      const postTextarea = document.querySelector('.post-textarea');
-      if (postTextarea) {
-        postTextarea.addEventListener('focus', () => {
-          gsap.to('.post-creation-area', {
-            scale: 1.02,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        postTextarea.addEventListener('blur', () => {
-          gsap.to('.post-creation-area', {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      }
-
-      // Post button hover effect
-      const postButton = document.querySelector('.post-button');
-      if (postButton) {
-        postButton.addEventListener('mouseenter', () => {
-          gsap.to(postButton, {
-            scale: 1.05,
-            y: -2,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        postButton.addEventListener('mouseleave', () => {
-          gsap.to(postButton, {
-            scale: 1,
-            y: 0,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      }
-
-      // Tab hover effects
-      const tabTriggers = document.querySelectorAll('.social-tab-trigger');
-      tabTriggers.forEach(tab => {
-        tab.addEventListener('mouseenter', () => {
-          gsap.to(tab, {
-            scale: 1.05,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        tab.addEventListener('mouseleave', () => {
-          gsap.to(tab, {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      });
-
-      // Media preview items animations
-      const mediaPreviewItems = document.querySelectorAll('.media-preview-item');
-      gsap.fromTo(
-        ".media-preview-item",
-        { opacity: 0, scale: 0.8, rotation: -5 },
-        {
-          opacity: 1,
-          scale: 1,
-          rotation: 0,
-          duration: 0.4,
-          stagger: 0.1,
-          ease: "back.out(1.7)",
-          delay: 1.0
+        if (document.querySelector(".social-subtitle")) {
+          gsap.fromTo(
+            ".social-subtitle",
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
+          );
         }
-      );
 
-      // Remove media button interactions
-      const removeMediaButtons = document.querySelectorAll('.remove-media-button');
-      removeMediaButtons.forEach(button => {
-        button.addEventListener('mouseenter', () => {
-          gsap.to(button, {
-            scale: 1.3,
-            rotation: 90,
-            duration: 0.2,
-            ease: "power2.out"
+        // Post creation area animations
+        if (document.querySelector(".post-creation-area")) {
+          gsap.fromTo(
+            ".post-creation-area",
+            { opacity: 0, y: 20, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: 0.4, ease: "back.out(1.7)" }
+          );
+        }
+
+        if (document.querySelector(".post-textarea")) {
+          gsap.fromTo(
+            ".post-textarea",
+            { opacity: 0, scale: 0.9 },
+            { opacity: 1, scale: 1, duration: 0.6, delay: 0.6, ease: "power2.out" }
+          );
+        }
+
+        if (document.querySelector(".post-actions")) {
+          gsap.fromTo(
+            ".post-actions",
+            { opacity: 0, y: 15 },
+            { opacity: 1, y: 0, duration: 0.5, delay: 0.8, ease: "power2.out" }
+          );
+        }
+
+        // Empty state animations
+        if (posts.length === 0) {
+          if (document.querySelector(".empty-social-state")) {
+            gsap.fromTo(
+              ".empty-social-state",
+              { opacity: 0, y: 30, scale: 0.9 },
+              { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: 1.4, ease: "power2.out" }
+            );
+          }
+
+          if (document.querySelector(".empty-social-icon")) {
+            gsap.fromTo(
+              ".empty-social-icon",
+              { scale: 0, rotation: -180 },
+              { scale: 1, rotation: 0, duration: 0.8, delay: 1.6, ease: "back.out(1.7)" }
+            );
+          }
+        }
+
+        // Interactive hover effects
+        const postCards = document.querySelectorAll('.post-card-container');
+        postCards.forEach(card => {
+          card.addEventListener('mouseenter', () => {
+            gsap.to(card, {
+              y: -8,
+              scale: 1.02,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            gsap.to(card, {
+              y: 0,
+              scale: 1,
+              boxShadow: "0 0 0 rgba(0,0,0,0)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
           });
         });
-        
-        button.addEventListener('mouseleave', () => {
-          gsap.to(button, {
-            scale: 1,
-            rotation: 0,
-            duration: 0.2,
-            ease: "power2.out"
+
+        // Post textarea focus effect
+        const postTextarea = document.querySelector('.post-textarea');
+        if (postTextarea) {
+          const area = document.querySelector('.post-creation-area');
+          postTextarea.addEventListener('focus', () => {
+            if (area) gsap.to(area, { scale: 1.02, duration: 0.2, ease: "power2.out" });
+          });
+          
+          postTextarea.addEventListener('blur', () => {
+            if (area) gsap.to(area, { scale: 1, duration: 0.2, ease: "power2.out" });
+          });
+        }
+
+        // Post button hover effect
+        const postButton = document.querySelector('.post-button');
+        if (postButton) {
+          postButton.addEventListener('mouseenter', () => {
+            gsap.to(postButton, { scale: 1.05, y: -2, duration: 0.2, ease: "power2.out" });
+          });
+          
+          postButton.addEventListener('mouseleave', () => {
+            gsap.to(postButton, { scale: 1, y: 0, duration: 0.2, ease: "power2.out" });
+          });
+        }
+
+        // Like button interactions
+        const likeButtons = document.querySelectorAll('.like-button');
+        likeButtons.forEach(button => {
+          button.addEventListener('mouseenter', () => {
+            gsap.to(button, { scale: 1.2, rotation: 5, duration: 0.2, ease: "power2.out" });
+          });
+          
+          button.addEventListener('mouseleave', () => {
+            gsap.to(button, { scale: 1, rotation: 0, duration: 0.2, ease: "power2.out" });
+          });
+        });
+
+        // Comment button interactions
+        const commentButtons = document.querySelectorAll('.comment-button');
+        commentButtons.forEach(button => {
+          button.addEventListener('mouseenter', () => {
+            gsap.to(button, { scale: 1.1, duration: 0.2, ease: "power2.out" });
+          });
+          
+          button.addEventListener('mouseleave', () => {
+            gsap.to(button, { scale: 1, duration: 0.2, ease: "power2.out" });
           });
         });
       });
 
-      // Like button interactions
-      const likeButtons = document.querySelectorAll('.like-button');
-      likeButtons.forEach(button => {
-        button.addEventListener('mouseenter', () => {
-          gsap.to(button, {
-            scale: 1.2,
-            rotation: 5,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        button.addEventListener('mouseleave', () => {
-          gsap.to(button, {
-            scale: 1,
-            rotation: 0,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      });
-
-      // Comment button interactions
-      const commentButtons = document.querySelectorAll('.comment-button');
-      commentButtons.forEach(button => {
-        button.addEventListener('mouseenter', () => {
-          gsap.to(button, {
-            scale: 1.1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        button.addEventListener('mouseleave', () => {
-          gsap.to(button, {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      });
-
-      return () => {
-        gsap.killTweensOf(".social-header, .social-subtitle, .post-creation-area, .post-textarea, .post-actions, .social-tabs, .social-tab-trigger, .empty-social-state, .empty-social-icon, .post-card-container, .post-button, .like-button, .comment-button, .media-preview-item, .remove-media-button");
-      };
+      return () => ctx.revert();
     }
   }, [loading, posts.length]);
+
+  // Media preview items animations
+  useEffect(() => {
+    if (selectedMedia.length > 0) {
+      const ctx = gsap.context(() => {
+        if (document.querySelector(".media-preview-item")) {
+          gsap.fromTo(
+            ".media-preview-item",
+            { opacity: 0, scale: 0.8, rotation: -5 },
+            {
+              opacity: 1,
+              scale: 1,
+              rotation: 0,
+              duration: 0.4,
+              stagger: 0.1,
+              ease: "back.out(1.7)",
+            }
+          );
+        }
+
+        // Remove media button interactions
+        const removeMediaButtons = document.querySelectorAll('.remove-media-button');
+        removeMediaButtons.forEach(button => {
+          button.addEventListener('mouseenter', () => {
+            gsap.to(button, { scale: 1.3, rotation: 90, duration: 0.2, ease: "power2.out" });
+          });
+          
+          button.addEventListener('mouseleave', () => {
+            gsap.to(button, { scale: 1, rotation: 0, duration: 0.2, ease: "power2.out" });
+          });
+        });
+      });
+      return () => ctx.revert();
+    }
+  }, [selectedMedia.length]);
 
   const performSearch = async () => {
     setIsSearching(true);

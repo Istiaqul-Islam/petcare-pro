@@ -111,168 +111,188 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading) {
-      // Header animations
-      gsap.fromTo(
-        ".dashboard-title",
-        { opacity: 0, y: 30, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
-      );
-
-      gsap.fromTo(
-        ".dashboard-subtitle",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
-      );
-
-      // Stats cards animations
-      gsap.fromTo(
-        ".stat-card",
-        { opacity: 0, y: 40, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "back.out(1.7)",
-          delay: 0.4
+      const ctx = gsap.context(() => {
+        // Header animations
+        if (document.querySelector(".dashboard-title")) {
+          gsap.fromTo(
+            ".dashboard-title",
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
+          );
         }
-      );
 
-      gsap.fromTo(
-        ".stat-icon",
-        { scale: 0, rotation: -180 },
-        {
-          scale: 1,
-          rotation: 0,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: "back.out(1.7)",
-          delay: 0.6
+        if (document.querySelector(".dashboard-subtitle")) {
+          gsap.fromTo(
+            ".dashboard-subtitle",
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
+          );
         }
-      );
 
-      gsap.fromTo(
-        ".stat-value",
-        { opacity: 0, scale: 0.5 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          delay: 0.8
+        // Stats cards animations
+        if (document.querySelector(".stat-card")) {
+          gsap.fromTo(
+            ".stat-card",
+            { opacity: 0, y: 40, scale: 0.9 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: "back.out(1.7)",
+              delay: 0.4
+            }
+          );
         }
-      );
 
-      // Quick actions animations
-      gsap.fromTo(
-        ".quick-actions-card",
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 1.0 }
-      );
-
-      gsap.fromTo(
-        ".quick-action-btn",
-        { opacity: 0, scale: 0.8 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "back.out(1.7)",
-          delay: 1.2
+        if (document.querySelector(".stat-icon")) {
+          gsap.fromTo(
+            ".stat-icon",
+            { scale: 0, rotation: -180 },
+            {
+              scale: 1,
+              rotation: 0,
+              duration: 0.8,
+              stagger: 0.15,
+              ease: "back.out(1.7)",
+              delay: 0.6
+            }
+          );
         }
-      );
 
-      // Section animations
-      gsap.fromTo(
-        ".dashboard-section",
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-          stagger: 0.2,
-          ease: "power2.out",
-          delay: 1.4
+        if (document.querySelector(".stat-value")) {
+          gsap.fromTo(
+            ".stat-value",
+            { opacity: 0, scale: 0.5 },
+            {
+              opacity: 1,
+              scale: 1,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: "power2.out",
+              delay: 0.8
+            }
+          );
         }
-      );
 
-      gsap.fromTo(
-        ".section-title",
-        { opacity: 0, x: -20 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          delay: 1.6
+        // Quick actions animations
+        if (document.querySelector(".quick-actions-card")) {
+          gsap.fromTo(
+            ".quick-actions-card",
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 1.0 }
+          );
         }
-      );
 
-      gsap.fromTo(
-        ".section-description",
-        { opacity: 0, x: -15 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: "power2.out",
-          delay: 1.8
+        if (document.querySelector(".quick-action-btn")) {
+          gsap.fromTo(
+            ".quick-action-btn",
+            { opacity: 0, scale: 0.8 },
+            {
+              opacity: 1,
+              scale: 1,
+              duration: 0.5,
+              stagger: 0.08,
+              ease: "back.out(1.7)",
+              delay: 1.2
+            }
+          );
         }
-      );
 
-      // Interactive hover effects
-      const statCards = document.querySelectorAll('.stat-card');
-      statCards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-          gsap.to(card, {
-            y: -5,
-            scale: 1.02,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-            duration: 0.3,
-            ease: "power2.out"
+        // Section animations
+        if (document.querySelector(".dashboard-section")) {
+          gsap.fromTo(
+            ".dashboard-section",
+            { opacity: 0, y: 40 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.7,
+              stagger: 0.2,
+              ease: "power2.out",
+              delay: 1.4
+            }
+          );
+        }
+
+        if (document.querySelector(".section-title")) {
+          gsap.fromTo(
+            ".section-title",
+            { opacity: 0, x: -20 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: "power2.out",
+              delay: 1.6
+            }
+          );
+        }
+
+        if (document.querySelector(".section-description")) {
+          gsap.fromTo(
+            ".section-description",
+            { opacity: 0, x: -15 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.5,
+              stagger: 0.1,
+              ease: "power2.out",
+              delay: 1.8
+            }
+          );
+        }
+
+        // Interactive hover effects
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+          card.addEventListener('mouseenter', () => {
+            gsap.to(card, {
+              y: -5,
+              scale: 1.02,
+              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            gsap.to(card, {
+              y: 0,
+              scale: 1,
+              boxShadow: "0 0 0 rgba(0,0,0,0)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
           });
         });
-        
-        card.addEventListener('mouseleave', () => {
-          gsap.to(card, {
-            y: 0,
-            scale: 1,
-            boxShadow: "0 0 0 rgba(0,0,0,0)",
-            duration: 0.3,
-            ease: "power2.out"
+
+        const actionButtons = document.querySelectorAll('.quick-action-btn');
+        actionButtons.forEach(btn => {
+          btn.addEventListener('mouseenter', () => {
+            gsap.to(btn, {
+              scale: 1.05,
+              y: -2,
+              duration: 0.2,
+              ease: "power2.out"
+            });
+          });
+          
+          btn.addEventListener('mouseleave', () => {
+            gsap.to(btn, {
+              scale: 1,
+              y: 0,
+              duration: 0.2,
+              ease: "power2.out"
+            });
           });
         });
       });
 
-      const actionButtons = document.querySelectorAll('.quick-action-btn');
-      actionButtons.forEach(btn => {
-        btn.addEventListener('mouseenter', () => {
-          gsap.to(btn, {
-            scale: 1.05,
-            y: -2,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        btn.addEventListener('mouseleave', () => {
-          gsap.to(btn, {
-            scale: 1,
-            y: 0,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      });
-
-      return () => {
-        gsap.killTweensOf(".dashboard-title, .dashboard-subtitle, .stat-card, .stat-icon, .stat-value, .quick-actions-card, .quick-action-btn, .dashboard-section, .section-title, .section-description");
-      };
+      return () => ctx.revert();
     }
   }, [loading]);
 

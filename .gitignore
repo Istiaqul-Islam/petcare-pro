@@ -60,6 +60,9 @@ server.log
 local.db
 local.db-wal
 local.db-shm
+petcare_local.db
+petcare_local.db-wal
+petcare_local.db-shm
 
 # wragnler
 

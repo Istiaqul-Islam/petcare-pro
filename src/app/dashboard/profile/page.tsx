@@ -88,149 +88,193 @@ export default function ProfilePage() {
   // GSAP animations
   useEffect(() => {
     if (!loading && user) {
-      // Header animations
-      gsap.fromTo(
-        ".profile-header",
-        { opacity: 0, y: 30, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
-      );
-
-      gsap.fromTo(
-        ".profile-subtitle",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
-      );
-
-      // Profile photo card animations
-      gsap.fromTo(
-        ".profile-photo-card",
-        { opacity: 0, x: -50, scale: 0.9 },
-        { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 0.4, ease: "back.out(1.7)" }
-      );
-
-      gsap.fromTo(
-        ".profile-avatar",
-        { scale: 0, rotation: -180 },
-        { scale: 1, rotation: 0, duration: 0.8, delay: 0.6, ease: "back.out(1.7)" }
-      );
-
-      gsap.fromTo(
-        ".profile-photo-text",
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.5, delay: 0.8, ease: "power2.out" }
-      );
-
-      // Personal information card animations
-      gsap.fromTo(
-        ".personal-info-card",
-        { opacity: 0, x: 50, scale: 0.9 },
-        { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 0.5, ease: "back.out(1.7)" }
-      );
-
-      // Form field animations
-      gsap.fromTo(
-        ".form-field",
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "power2.out",
-          delay: 0.7
+      const ctx = gsap.context(() => {
+        // Header animations
+        if (document.querySelector(".profile-header")) {
+          gsap.fromTo(
+            ".profile-header",
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
+          );
         }
-      );
 
-      // Security section animations
-      gsap.fromTo(
-        ".security-card",
-        { opacity: 0, y: 40, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6, delay: 0.9, ease: "power2.out" }
-      );
-
-      // Account information section animations
-      gsap.fromTo(
-        ".account-info-card",
-        { opacity: 0, y: 40, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6, delay: 1.1, ease: "power2.out" }
-      );
-
-      gsap.fromTo(
-        ".account-info-item",
-        { opacity: 0, x: -20 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: "power2.out",
-          delay: 1.3
+        if (document.querySelector(".profile-subtitle")) {
+          gsap.fromTo(
+            ".profile-subtitle",
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
+          );
         }
-      );
 
-      // Interactive hover effects
-      const profileCard = document.querySelector('.profile-photo-card');
-      if (profileCard) {
-        profileCard.addEventListener('mouseenter', () => {
-          gsap.to(profileCard, {
-            y: -5,
-            scale: 1.02,
-            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-        
-        profileCard.addEventListener('mouseleave', () => {
-          gsap.to(profileCard, {
-            y: 0,
-            scale: 1,
-            boxShadow: "0 0 0 rgba(0,0,0,0)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-      }
+        // Profile photo card animations
+        if (document.querySelector(".profile-photo-card")) {
+          gsap.fromTo(
+            ".profile-photo-card",
+            { opacity: 0, x: -50, scale: 0.9 },
+            { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 0.4, ease: "back.out(1.7)" }
+          );
+        }
 
-      const personalInfoCard = document.querySelector('.personal-info-card');
-      if (personalInfoCard) {
-        personalInfoCard.addEventListener('mouseenter', () => {
-          gsap.to(personalInfoCard, {
-            y: -3,
-            scale: 1.01,
-            boxShadow: "0 15px 30px rgba(0,0,0,0.08)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-        
-        personalInfoCard.addEventListener('mouseleave', () => {
-          gsap.to(personalInfoCard, {
-            y: 0,
-            scale: 1,
-            boxShadow: "0 0 0 rgba(0,0,0,0)",
-            duration: 0.3,
-            ease: "power2.out"
-          });
-        });
-      }
+        if (document.querySelector(".profile-avatar")) {
+          gsap.fromTo(
+            ".profile-avatar",
+            { scale: 0, rotation: -180 },
+            { scale: 1, rotation: 0, duration: 0.8, delay: 0.6, ease: "back.out(1.7)" }
+          );
+        }
 
-      // Form input focus effects
-      const formInputs = document.querySelectorAll('.form-field input');
-      formInputs.forEach(input => {
-        const parent = input.closest('.form-field');
-        if (parent) {
-          input.addEventListener('focus', () => {
-            gsap.to(parent, {
+        if (document.querySelector(".profile-photo-text")) {
+          gsap.fromTo(
+            ".profile-photo-text",
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.5, delay: 0.8, ease: "power2.out" }
+          );
+        }
+
+        // Personal information card animations
+        if (document.querySelector(".personal-info-card")) {
+          gsap.fromTo(
+            ".personal-info-card",
+            { opacity: 0, x: 50, scale: 0.9 },
+            { opacity: 1, x: 0, scale: 1, duration: 0.7, delay: 0.5, ease: "back.out(1.7)" }
+          );
+        }
+
+        // Form field animations
+        if (document.querySelector(".form-field")) {
+          gsap.fromTo(
+            ".form-field",
+            { opacity: 0, y: 20 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.5,
+              stagger: 0.08,
+              ease: "power2.out",
+              delay: 0.7
+            }
+          );
+        }
+
+        // Security section animations
+        if (document.querySelector(".security-card")) {
+          gsap.fromTo(
+            ".security-card",
+            { opacity: 0, y: 40, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, delay: 0.9, ease: "power2.out" }
+          );
+        }
+
+        // Account information section animations
+        if (document.querySelector(".account-info-card")) {
+          gsap.fromTo(
+            ".account-info-card",
+            { opacity: 0, y: 40, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, delay: 1.1, ease: "power2.out" }
+          );
+        }
+
+        if (document.querySelector(".account-info-item")) {
+          gsap.fromTo(
+            ".account-info-item",
+            { opacity: 0, x: -20 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.5,
+              stagger: 0.1,
+              ease: "power2.out",
+              delay: 1.3
+            }
+          );
+        }
+
+        // Interactive hover effects
+        const profileCard = document.querySelector('.profile-photo-card');
+        if (profileCard) {
+          profileCard.addEventListener('mouseenter', () => {
+            gsap.to(profileCard, {
+              y: -5,
               scale: 1.02,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+          
+          profileCard.addEventListener('mouseleave', () => {
+            gsap.to(profileCard, {
+              y: 0,
+              scale: 1,
+              boxShadow: "0 0 0 rgba(0,0,0,0)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+        }
+
+        const personalInfoCard = document.querySelector('.personal-info-card');
+        if (personalInfoCard) {
+          personalInfoCard.addEventListener('mouseenter', () => {
+            gsap.to(personalInfoCard, {
+              y: -3,
+              scale: 1.01,
+              boxShadow: "0 15px 30px rgba(0,0,0,0.08)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+          
+          personalInfoCard.addEventListener('mouseleave', () => {
+            gsap.to(personalInfoCard, {
+              y: 0,
+              scale: 1,
+              boxShadow: "0 0 0 rgba(0,0,0,0)",
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+        }
+
+        // Form input focus effects
+        const formInputs = document.querySelectorAll('.form-field input');
+        formInputs.forEach(input => {
+          const parent = input.closest('.form-field');
+          if (parent) {
+            input.addEventListener('focus', () => {
+              gsap.to(parent, {
+                scale: 1.02,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+            
+            input.addEventListener('blur', () => {
+              gsap.to(parent, {
+                scale: 1,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+          }
+        });
+
+        // Save button hover effect
+        const saveButton = document.querySelector('.save-profile-btn');
+        if (saveButton) {
+          saveButton.addEventListener('mouseenter', () => {
+            gsap.to(saveButton, {
+              scale: 1.05,
+              y: -2,
               duration: 0.2,
               ease: "power2.out"
             });
           });
           
-          input.addEventListener('blur', () => {
-            gsap.to(parent, {
+          saveButton.addEventListener('mouseleave', () => {
+            gsap.to(saveButton, {
               scale: 1,
+              y: 0,
               duration: 0.2,
               ease: "power2.out"
             });
@@ -238,31 +282,7 @@ export default function ProfilePage() {
         }
       });
 
-      // Save button hover effect
-      const saveButton = document.querySelector('.save-profile-btn');
-      if (saveButton) {
-        saveButton.addEventListener('mouseenter', () => {
-          gsap.to(saveButton, {
-            scale: 1.05,
-            y: -2,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-        
-        saveButton.addEventListener('mouseleave', () => {
-          gsap.to(saveButton, {
-            scale: 1,
-            y: 0,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      }
-
-      return () => {
-        gsap.killTweensOf(".profile-header, .profile-subtitle, .profile-photo-card, .profile-avatar, .profile-photo-text, .personal-info-card, .form-field, .security-card, .account-info-card, .account-info-item, .save-profile-btn");
-      };
+      return () => ctx.revert();
     }
   }, [loading, user]);
 

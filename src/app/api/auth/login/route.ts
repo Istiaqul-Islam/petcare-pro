@@ -125,19 +125,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Update verification status and metadata in DB
+    // 3. Update verification status and clear temporary metadata from DB
     try {
       await executeDb(
-        "UPDATE users SET isVerified = 1, firebaseUid = ?, firebaseMetadata = ?, updatedAt = ? WHERE id = ?",
+        "UPDATE users SET isVerified = 1, firebaseUid = ?, firebaseMetadata = NULL, updatedAt = ? WHERE id = ?",
         [
           decodedToken.uid, 
-          JSON.stringify(decodedToken), 
           new Date().toISOString(), 
           (user as any).id
         ]
       );
     } catch (dbError: any) {
-      console.error("❌ Failed to update user status/metadata in DB:", dbError.message);
+      console.error("❌ Failed to update user status/clear metadata in DB:", dbError.message);
     }
 
     // 4. Create PetCare session
