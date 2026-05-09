@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import gsap from "gsap";
+import { auth } from "@/lib/firebase";
 import {
   PawPrint,
   LayoutDashboard,

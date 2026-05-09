@@ -41,6 +41,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { auth } from "@/lib/firebase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -647,6 +648,11 @@ export default function LandingPage() {
 
   const handleLogout = async () => {
     try {
+      // 1. Sign out from Firebase client
+      const { signOut } = await import("firebase/auth");
+      await signOut(auth);
+
+      // 2. Sign out from our backend session
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
       router.refresh();
