@@ -31,40 +31,40 @@ export async function POST(request: NextRequest) {
     };
     const { name, email, password, phone, address, firebaseUid } = body;
 
+    // DIAGNOSTIC LOGGING
+    console.log("📝 [SIGNUP] Attempting signup for:", email);
+    const TURSO_URL = process.env.TURSO_CONNECTION_URL;
+    const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
+    console.log("📝 [SIGNUP] Env check:", { 
+      hasUrl: !!TURSO_URL, 
+      hasToken: !!TURSO_TOKEN,
+      urlPrefix: TURSO_URL?.substring(0, 10) 
+    });
+
     // Validate required fields
-    if (!name || !email || !password || !firebaseUid) {
+    if (!name || !email || !firebaseUid) {
       return NextResponse.json(
-        { success: false, error: "Name, email, password, and firebaseUid are required" },
-        { status: 400 },
-      );
-    }
-
-    // Validate email
-    if (!validateEmail(email)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid email format" },
-        { status: 400 },
-      );
-    }
-
-    // Validate password
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      return NextResponse.json(
-        { success: false, error: passwordValidation.message },
+        { success: false, error: "Missing required fields (name, email, or firebaseUid)" },
         { status: 400 },
       );
     }
 
     // Check if email already exists
-    const existingUser = await queryDbFirst(
-      "SELECT * FROM users WHERE email = ?",
-      [email.toLowerCase()]
-    );
+    let existingUser;
+    try {
+      existingUser = await queryDbFirst(
+        "SELECT * FROM users WHERE email = ?",
+        [email.toLowerCase()]
+      );
+    } catch (dbErr: any) {
+      console.error("❌ [SIGNUP] Initial DB check failed:", dbErr.message);
+      return NextResponse.json(
+        { success: false, error: `Database connection error: ${dbErr.message}` },
+        { status: 500 },
+      );
+    }
 
     if (existingUser) {
-      // MIGRATION LOGIC: If user exists in DB but doesn't have a Firebase UID yet,
-      // we update their record with the new UID.
       if (!(existingUser as any).firebaseUid) {
         const now = nowISO();
         await executeDb(
@@ -85,52 +85,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Skip bcrypt hashing for Firebase users to save CPU time on Cloudflare Edge (50ms limit)
-    // Firebase handles the actual password authentication.
     const placeholderPassword = "firebase_managed";
-
-    // Create user
     const id = generateId();
     const now = nowISO();
     
-    await executeDb(
-      "INSERT INTO users (id, email, password, name, phone, address, role, firebaseUid, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        id,
-        email.toLowerCase(),
-        placeholderPassword,
-        name,
-        phone || null,
-        address || null,
-        "user",
-        firebaseUid,
-        0, // Not verified initially
-        now,
-        now,
-      ]
-    );
-
-    const user = await queryDbFirst(
-      "SELECT * FROM users WHERE id = ?",
-      [id]
-    );
-
-    if (!user) {
-      throw new Error("Failed to create user");
+    try {
+      console.log("📝 [SIGNUP] Inserting user into Turso...");
+      await executeDb(
+        "INSERT INTO users (id, email, password, name, phone, address, role, firebaseUid, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          id,
+          email.toLowerCase(),
+          placeholderPassword,
+          name,
+          phone || null,
+          address || null,
+          "user",
+          firebaseUid,
+          0,
+          now,
+          now,
+        ]
+      );
+    } catch (insertErr: any) {
+      console.error("❌ [SIGNUP] Insert failed:", insertErr.message);
+      return NextResponse.json(
+        { success: false, error: `Failed to save user: ${insertErr.message}` },
+        { status: 500 },
+      );
     }
-
-    // Return user data (without password)
-    const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       success: true,
       message: "Registration successful",
-      user: userWithoutPassword,
+      user: { id, email, name },
     });
-  } catch (error) {
-    console.error("Signup error:", error);
+  } catch (error: any) {
+    console.error("❌ [SIGNUP] Critical error:", error.message);
     return NextResponse.json(
-      { success: false, error: "An error occurred during registration" },
+      { success: false, error: `An unexpected error occurred: ${error.message}` },
       { status: 500 },
     );
   }

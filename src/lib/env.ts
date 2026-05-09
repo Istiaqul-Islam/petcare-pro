@@ -5,7 +5,9 @@ import { getCloudflareContext } from "./cf-context";
  * Robustly get environment variables in both local and Cloudflare Edge runtimes
  */
 export function getEnv(): any {
-    // 1. Try Cloudflare Request Context
+    const g = globalThis as any;
+
+    // 1. Try Cloudflare Context (next-on-pages standard)
     try {
         const cfCtx = getCloudflareContext();
         if (cfCtx?.env && Object.keys(cfCtx.env).length > 0) {
@@ -13,15 +15,15 @@ export function getEnv(): any {
         }
     } catch (e) { }
 
-    // 2. Try globalThis (common in some Cloudflare environments)
-    const g = globalThis as any;
-    if (g.__env__) return g.__env__;
-    if (g.env) return g.env;
-
-    // 3. Fallback to process.env (local development)
-    if (typeof process !== "undefined" && process.env) {
+    // 2. Try standard process.env (Next.js polyfill)
+    if (typeof process !== "undefined" && process.env && Object.keys(process.env).length > 0) {
         return process.env;
     }
+
+    // 3. Try globalThis properties (Edge runtime)
+    if (g.process?.env) return g.process.env;
+    if (g.__env__) return g.__env__;
+    if (g.env) return g.env;
 
     return {};
 }

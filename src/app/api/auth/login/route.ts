@@ -15,6 +15,16 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { email?: string; password?: string; idToken?: string };
     const { email, password, idToken } = body;
 
+    // DIAGNOSTIC LOGGING
+    console.log("📝 [LOGIN] Attempting login for:", email);
+    const TURSO_URL = process.env.TURSO_CONNECTION_URL;
+    const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
+    console.log("📝 [LOGIN] Env check:", { 
+      hasUrl: !!TURSO_URL, 
+      hasToken: !!TURSO_TOKEN,
+      urlPrefix: TURSO_URL?.substring(0, 10) 
+    });
+
     if (!email) {
       return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
     }
