@@ -215,28 +215,152 @@ export default function VaccinationsPage() {
   };
 
   const handleDownloadReceipt = async () => {
-    if (!receiptRef.current || !selectedVaccinationForReport) return;
+    if (!selectedVaccinationForReport) return;
 
     try {
-      const element = receiptRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const imgData = canvas.toDataURL("image/png");
-      
+      // Create PDF - A4 size (210mm x 297mm)
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       });
 
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const primaryColor = "#3b82f6";
+      const secondaryColor = "#64748b";
+      const textColor = "#0f172a";
+      const borderColor = "#e2e8f0";
+      const lightBg = "#f8fafc";
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      // 1. Header Section
+      pdf.setFillColor(primaryColor);
+      pdf.roundedRect(20, 20, 10, 10, 2, 2, "F"); // Logo box
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(22);
+      pdf.setTextColor(textColor);
+      pdf.text("PetCare Pro", 35, 28);
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("Official Health & Vaccination Record", 35, 33);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("RECEIPT NO.", 160, 25);
+      
+      pdf.setFont("courier", "bold");
+      pdf.setFontSize(14);
+      pdf.setTextColor(textColor);
+      pdf.text(`#${selectedVaccinationForReport.id.slice(0, 8).toUpperCase()}`, 160, 32);
+
+      // Line
+      pdf.setDrawColor(borderColor);
+      pdf.line(20, 45, 190, 45);
+
+      // 2. Info Grid
+      // Pet Info
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("PET INFORMATION", 20, 60);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(textColor);
+      pdf.text(selectedVaccinationForReport.pet.name, 20, 67);
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(secondaryColor);
+      pdf.text(`${selectedVaccinationForReport.pet.species} • ${selectedVaccinationForReport.pet.breed || "Mixed Breed"}`, 20, 72);
+
+      // Vaccination Info
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("VACCINATION NAME", 20, 85);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(textColor);
+      pdf.text(selectedVaccinationForReport.name, 20, 92);
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(secondaryColor);
+      pdf.text(selectedVaccinationForReport.type || "Standard Core Vaccine", 20, 97);
+
+      // Dates (Right Column)
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("DATE ADMINISTERED", 110, 60);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(textColor);
+      pdf.text(formatDate(selectedVaccinationForReport.dateAdministered), 110, 67);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("NEXT DUE DATE", 110, 85);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(primaryColor);
+      pdf.text(formatDate(selectedVaccinationForReport.nextDueDate), 110, 92);
+
+      // 3. Clinical Box
+      pdf.setFillColor(lightBg);
+      pdf.setDrawColor("#f1f5f9");
+      pdf.roundedRect(20, 110, 170, 30, 3, 3, "FD");
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("ADMINISTERED BY", 30, 120);
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(textColor);
+      pdf.text(selectedVaccinationForReport.veterinarian || "Certified Professional", 30, 127);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text("CLINIC / FACILITY", 110, 120);
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(textColor);
+      pdf.text(selectedVaccinationForReport.clinic || "PetCare Partner Clinic", 110, 127);
+
+      // 4. Manufacturing details
+      if (selectedVaccinationForReport.batchNumber) {
+        pdf.setDrawColor(borderColor);
+        pdf.setLineDash([2, 2], 0);
+        pdf.line(20, 155, 190, 155);
+        pdf.setLineDash([], 0);
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        pdf.setTextColor(secondaryColor);
+        pdf.text(`Manufacturer: ${selectedVaccinationForReport.manufacturer || "N/A"}`, 20, 165);
+        
+        pdf.setFont("courier", "bold");
+        pdf.text(`Batch No: ${selectedVaccinationForReport.batchNumber}`, 145, 165);
+      }
+
+      // 5. Footer
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(secondaryColor);
+      pdf.text(`Generated on ${new Date().toLocaleString()}`, 20, 270);
+      pdf.text("PetCare Pro - digital verification verified", 20, 275);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(borderColor);
+      pdf.text("PETCARE PRO SEAL", 150, 275);
+
+      // Save PDF
       pdf.save(`Vaccination_Receipt_${selectedVaccinationForReport.pet.name}_${selectedVaccinationForReport.name}.pdf`);
       
       toast({
@@ -247,7 +371,7 @@ export default function VaccinationsPage() {
       console.error("PDF generation error:", error);
       toast({
         title: "Download Failed",
-        description: "Failed to generate PDF receipt.",
+        description: "An error occurred while generating the PDF.",
         variant: "destructive",
       });
     }
