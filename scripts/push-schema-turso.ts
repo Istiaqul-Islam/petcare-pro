@@ -7,6 +7,10 @@
 import * as fs from "fs";
 import * as path from "path";
 import { createClient } from "@libsql/client";
+import * as dotenv from "dotenv";
+
+// Load environment variables from .env.local
+dotenv.config({ path: ".env.local" });
 
 async function pushSchemaToCloud() {
   const url = process.env.TURSO_CONNECTION_URL;

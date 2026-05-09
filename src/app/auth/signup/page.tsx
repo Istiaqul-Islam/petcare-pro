@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PawPrint, Eye, EyeOff, Loader2, CheckCircle, XCircle, User, Mail, Lock, Phone } from "lucide-react";
+import { PawPrint, Eye, EyeOff, Loader2, CheckCircle, XCircle, User, Mail, Lock, Phone, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 
 // Debounce function
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -29,6 +31,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [emailStatus, setEmailStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [formData, setFormData] = useState({
     name: "",
@@ -127,6 +130,19 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      // 1. Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      
+      const user = userCredential.user;
+
+      // 2. Send Email Verification
+      await sendEmailVerification(user);
+
+      // 3. Create user in our Turso DB
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -137,19 +153,18 @@ export default function SignupPage() {
           email: formData.email,
           password: formData.password,
           phone: formData.phone || undefined,
+          firebaseUid: user.uid,
         }),
-        credentials: "include",
       });
 
       const data = (await response.json()) as { success?: boolean; error?: string };
 
       if (data.success) {
+        setIsSuccess(true);
         toast({
-          title: "Account created!",
-          description: "Please sign in with your email and password.",
+          title: "Verification Email Sent!",
+          description: "Please check your inbox to verify your account.",
         });
-        router.push("/auth/login");
-        router.refresh();
       } else {
         toast({
           title: "Registration failed",
@@ -157,11 +172,19 @@ export default function SignupPage() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
+      let message = "An error occurred. Please try again.";
+      
+      if (error.code === "auth/email-already-in-use") {
+        message = "This email is already in use.";
+      } else if (error.code === "auth/weak-password") {
+        message = "The password is too weak.";
+      }
+
       toast({
-        title: "Error",
-        description: "An error occurred. Please try again.",
+        title: "Registration Error",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -184,6 +207,50 @@ export default function SignupPage() {
     }
     return <Mail className="h-4 w-4 text-muted-foreground" />;
   };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <header className="border-b bg-background/95 backdrop-blur">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <PawPrint className="h-5 w-5" />
+              </div>
+              <span className="text-xl font-bold">PetCare Pro</span>
+            </Link>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md text-center py-8">
+            <CardHeader className="space-y-4">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <MailCheck className="h-10 w-10 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
+              <CardDescription className="text-lg">
+                We've sent a verification link to <br />
+                <span className="font-bold text-foreground">{formData.email}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                You need to verify your email address before you can log in to your account.
+              </p>
+              <Button asChild className="w-full">
+                <Link href="/auth/login">Go to Login</Link>
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Didn't receive the email? Check your spam folder or try again.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -3,13 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PawPrint, Eye, EyeOff, Loader2 } from "lucide-react";
+import { PawPrint, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,6 +41,23 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleResendVerification = async () => {
+    if (!auth.currentUser) return;
+    try {
+      await sendEmailVerification(auth.currentUser);
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your inbox.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -48,13 +67,72 @@ export default function LoginPage() {
     setErrors({});
 
     try {
+      // --- ADMIN BYPASS ---
+      if (formData.email.toLowerCase() === "admin@petcare.com") {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        const data = (await response.json()) as { success?: boolean; user?: { role?: string }; error?: string };
+
+        if (data.success) {
+          toast({ title: "Admin Login Successful", description: "Welcome back, Admin." });
+          router.push(data.user?.role === "admin" ? "/admin" : "/dashboard");
+          router.refresh();
+          return;
+        } else {
+          setLoading(false);
+          toast({ title: "Admin Login Failed", description: data.error || "Invalid credentials", variant: "destructive" });
+          return;
+        }
+      }
+
+      // --- STANDARD USER (FIREBASE) ---
+      // 1. Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      const user = userCredential.user;
+
+      // 2. Check if email is verified
+      if (!user.emailVerified) {
+        setLoading(false);
+        toast({
+          title: "Email not verified",
+          description: (
+            <div className="flex flex-col gap-2">
+              <p>Please verify your email before logging in.</p>
+              <Button size="sm" variant="outline" onClick={handleResendVerification}>
+                Resend Verification Email
+              </Button>
+            </div>
+          ),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // 3. Get ID Token for server-side verification
+      const idToken = await user.getIdToken();
+
+      // 4. Login to our Turso backend and create session
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
-        credentials: "include",
+        body: JSON.stringify({
+          email: formData.email,
+          idToken: idToken,
+        }),
       });
 
       const data = (await response.json()) as { success?: boolean; user?: { role?: string }; error?: string };
@@ -65,8 +143,7 @@ export default function LoginPage() {
           description: "You have successfully logged in.",
         });
 
-        // Redirect based on role
-        if (data.user.role === "admin") {
+        if (data.user?.role === "admin") {
           router.push("/admin");
         } else {
           router.push("/dashboard");
@@ -79,11 +156,19 @@ export default function LoginPage() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      let message = "Invalid email or password.";
+      
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        message = "Invalid email or password.";
+      } else if (error.code === "auth/too-many-requests") {
+        message = "Too many failed attempts. Please try again later.";
+      }
+
       toast({
-        title: "Error",
-        description: "An error occurred. Please try again.",
+        title: "Login Error",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -138,6 +223,12 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
+                  <Link 
+                    href="/auth/forgot-password" 
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
                 <div className="relative">
                   <Input
@@ -188,7 +279,6 @@ export default function LoginPage() {
                 Create account
               </Link>
             </div>
-
           </CardContent>
         </Card>
       </main>

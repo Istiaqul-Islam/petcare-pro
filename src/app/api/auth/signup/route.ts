@@ -21,13 +21,20 @@ function generateSessionToken(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as { name?: string; email?: string; password?: string; phone?: string; address?: string };
-    const { name, email, password, phone, address } = body;
+    const body = (await request.json()) as { 
+      name?: string; 
+      email?: string; 
+      password?: string; 
+      phone?: string; 
+      address?: string;
+      firebaseUid?: string;
+    };
+    const { name, email, password, phone, address, firebaseUid } = body;
 
     // Validate required fields
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !firebaseUid) {
       return NextResponse.json(
-        { success: false, error: "Name, email, and password are required" },
+        { success: false, error: "Name, email, password, and firebaseUid are required" },
         { status: 400 },
       );
     }
@@ -51,11 +58,27 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists
     const existingUser = await queryDbFirst(
-      "SELECT id FROM users WHERE email = ?",
+      "SELECT * FROM users WHERE email = ?",
       [email.toLowerCase()]
     );
 
     if (existingUser) {
+      // MIGRATION LOGIC: If user exists in DB but doesn't have a Firebase UID yet,
+      // we update their record with the new UID.
+      if (!(existingUser as any).firebaseUid) {
+        const now = nowISO();
+        await executeDb(
+          "UPDATE users SET firebaseUid = ?, isVerified = 0, updatedAt = ? WHERE id = ?",
+          [firebaseUid, now, (existingUser as any).id]
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: "Account migrated successfully. Please verify your email.",
+          user: { email: (existingUser as any).email, name: (existingUser as any).name }
+        });
+      }
+
       return NextResponse.json(
         { success: false, error: "Email is already registered" },
         { status: 400 },
@@ -70,7 +93,7 @@ export async function POST(request: NextRequest) {
     const now = nowISO();
     
     await executeDb(
-      "INSERT INTO users (id, email, password, name, phone, address, role, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (id, email, password, name, phone, address, role, firebaseUid, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         id,
         email.toLowerCase(),
@@ -79,6 +102,8 @@ export async function POST(request: NextRequest) {
         phone || null,
         address || null,
         "user",
+        firebaseUid,
+        0, // Not verified initially
         now,
         now,
       ]
