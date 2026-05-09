@@ -85,8 +85,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
-    const hashedPassword = await hashPassword(password);
+    // Skip bcrypt hashing for Firebase users to save CPU time on Cloudflare Edge (50ms limit)
+    // Firebase handles the actual password authentication.
+    const placeholderPassword = "firebase_managed";
 
     // Create user
     const id = generateId();
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
       [
         id,
         email.toLowerCase(),
-        hashedPassword,
+        placeholderPassword,
         name,
         phone || null,
         address || null,
