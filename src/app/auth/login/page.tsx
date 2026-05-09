@@ -121,7 +121,8 @@ export default function LoginPage() {
       }
 
       // 3. Get ID Token for server-side verification
-      const idToken = await user.getIdToken();
+      // Force refresh (true) to ensure the 'email_verified' claim is up to date
+      const idToken = await user.getIdToken(true);
 
       // 4. Login to our Turso backend and create session
       const response = await fetch("/api/auth/login", {

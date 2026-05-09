@@ -58,9 +58,9 @@ export async function POST(request: NextRequest) {
         throw new Error("Token email mismatch");
       }
     } catch (error: any) {
-      console.error("Token verification failed:", error.message);
+      console.error("Token verification failed:", error.message || error);
       return NextResponse.json(
-        { success: false, error: "Invalid authentication token" },
+        { success: false, error: `Authentication failed: ${error.message || "Invalid token"}` },
         { status: 401 },
       );
     }
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!user) {
+      console.warn("⚠️ User not found in Turso for Firebase UID:", decodedToken.uid);
       return NextResponse.json(
         { success: false, error: "Account not found. Please sign up first." },
         { status: 401 },
@@ -80,10 +81,15 @@ export async function POST(request: NextRequest) {
 
     // 3. Update verification status in DB if it was 0
     if ((user as any).isVerified === 0) {
-      await executeDb(
-        "UPDATE users SET isVerified = 1 WHERE id = ?",
-        [(user as any).id]
-      );
+      try {
+        await executeDb(
+          "UPDATE users SET isVerified = 1 WHERE id = ?",
+          [(user as any).id]
+        );
+      } catch (dbError: any) {
+        console.error("❌ Failed to update verification status in DB:", dbError.message);
+        // We don't block login if just the DB update fails, but we log it
+      }
     }
 
     // 4. Create PetCare session
@@ -98,9 +104,13 @@ export async function POST(request: NextRequest) {
       user: userWithoutPassword,
     });
   } catch (error: any) {
-    console.error("Login error:", error);
+    console.error("❌ Login API critical error:", {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause
+    });
     return NextResponse.json(
-      { success: false, error: "An error occurred during login" },
+      { success: false, error: "An error occurred during login. Please check server logs." },
       { status: 500 },
     );
   }

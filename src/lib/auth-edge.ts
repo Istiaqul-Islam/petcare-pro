@@ -4,11 +4,12 @@
 
 import * as jose from "jose";
 
-const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
 export async function verifyFirebaseIdToken(token: string) {
+  const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
   if (!FIREBASE_PROJECT_ID) {
-    throw new Error("NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set");
+    console.error("❌ NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set in environment");
+    throw new Error("Server configuration error: Firebase Project ID missing");
   }
 
   // 1. Fetch Google's public keys for Firebase
