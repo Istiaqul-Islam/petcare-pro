@@ -66,29 +66,64 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Find user in our Turso DB using the verified UID
-    const user = await queryDbFirst(
-      "SELECT * FROM users WHERE firebaseUid = ?",
-      [decodedToken.uid]
+    let user = await queryDbFirst(
+      "SELECT * FROM users WHERE firebaseUid = ? OR email = ?",
+      [decodedToken.uid, email.toLowerCase()]
     );
 
+    // --- AUTO-PROVISIONING LOGIC ---
+    // If user is verified by Firebase but not in our DB, create them on the fly
     if (!user) {
-      console.warn("⚠️ User not found in Turso for Firebase UID:", decodedToken.uid);
+      console.log("🛠️ User verified in Firebase but not in Turso. Auto-creating profile for:", email);
+      
+      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const now = new Date().toISOString();
+      const placeholderPassword = "firebase_managed";
+      const name = (decodedToken as any).name || email.split("@")[0];
+
+      try {
+        await executeDb(
+          "INSERT INTO users (id, email, password, name, role, firebaseUid, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            id,
+            email.toLowerCase(),
+            placeholderPassword,
+            name,
+            "user",
+            decodedToken.uid,
+            1, // Verified since we got a valid Firebase token
+            now,
+            now,
+          ]
+        );
+
+        // Fetch the newly created user
+        user = await queryDbFirst("SELECT * FROM users WHERE id = ?", [id]);
+      } catch (createError: any) {
+        console.error("❌ Failed to auto-create user in Turso:", createError.message);
+        return NextResponse.json(
+          { success: false, error: "Authentication success, but profile creation failed. Please try again." },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: "Account not found. Please sign up first." },
+        { success: false, error: "Account not found and auto-creation failed." },
         { status: 401 },
       );
     }
 
-    // 3. Update verification status in DB if it was 0
-    if ((user as any).isVerified === 0) {
+    // 3. Update verification status in DB if it was 0 or update firebaseUid if missing
+    if ((user as any).isVerified === 0 || !(user as any).firebaseUid) {
       try {
         await executeDb(
-          "UPDATE users SET isVerified = 1 WHERE id = ?",
-          [(user as any).id]
+          "UPDATE users SET isVerified = 1, firebaseUid = ?, updatedAt = ? WHERE id = ?",
+          [decodedToken.uid, new Date().toISOString(), (user as any).id]
         );
       } catch (dbError: any) {
-        console.error("❌ Failed to update verification status in DB:", dbError.message);
-        // We don't block login if just the DB update fails, but we log it
+        console.error("❌ Failed to update user status in DB:", dbError.message);
       }
     }
 
