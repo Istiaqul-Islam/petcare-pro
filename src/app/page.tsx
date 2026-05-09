@@ -655,7 +655,9 @@ export default function LandingPage() {
       // 2. Sign out from our backend session
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
-      router.refresh();
+      
+      // Use window.location.href for a HARD REFRESH
+      window.location.href = "/";
     } catch {
       console.error("Logout failed");
     }

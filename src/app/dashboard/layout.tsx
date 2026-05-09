@@ -227,8 +227,9 @@ export default function DashboardLayout({
       // 2. Sign out from our backend session
       await fetch("/api/auth/logout", { method: "POST" });
       
-      router.push("/");
-      router.refresh();
+      // Use window.location.href for a HARD REFRESH
+      // This ensures all client-side auth state and memory is wiped clean.
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
     }
