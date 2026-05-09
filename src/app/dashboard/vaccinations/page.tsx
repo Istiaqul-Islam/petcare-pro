@@ -1063,88 +1063,109 @@ export default function VaccinationsPage() {
               {/* Receipt Content (This part will be captured for PDF) */}
               <div 
                 ref={receiptRef} 
-                className="p-8 border rounded-xl bg-white text-[#0f172a] space-y-8 shadow-sm print:shadow-none"
                 style={{ 
-                  fontFamily: "'Inter', sans-serif",
+                  padding: "32px",
                   backgroundColor: "#ffffff",
-                  color: "#0f172a"
+                  color: "#0f172a",
+                  fontFamily: "'Inter', sans-serif",
+                  borderRadius: "12px",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+                  width: "100%",
+                  maxWidth: "800px",
+                  margin: "0 auto"
                 }}
               >
                 {/* Header */}
-                <div className="flex justify-between items-start border-b pb-6 border-[#e2e8f0]">
+                <div style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "flex-start", 
+                  borderBottom: "1px solid #e2e8f0", 
+                  paddingBottom: "24px",
+                  marginBottom: "32px"
+                }}>
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="h-8 w-8 rounded bg-[#3b82f6] flex items-center justify-center">
-                        <PawPrint className="h-5 w-5 text-white" />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <div style={{ 
+                        height: "32px", 
+                        width: "32px", 
+                        borderRadius: "4px", 
+                        backgroundColor: "#3b82f6", 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center" 
+                      }}>
+                        <PawPrint className="h-5 w-5" style={{ color: "#ffffff" }} />
                       </div>
-                      <span className="text-xl font-bold tracking-tight text-[#0f172a]">PetCare Pro</span>
+                      <span style={{ fontSize: "20px", fontWeight: "bold", letterSpacing: "-0.025em", color: "#0f172a" }}>PetCare Pro</span>
                     </div>
-                    <p className="text-xs text-[#64748b]">Official Health & Vaccination Record</p>
+                    <p style={{ fontSize: "12px", color: "#64748b" }}>Official Health & Vaccination Record</p>
                   </div>
-                  <div className="text-right">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-[#94a3b8]">Receipt No.</h4>
-                    <p className="text-lg font-mono font-bold text-[#0f172a]">#{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
+                  <div style={{ textAlign: "right" }}>
+                    <h4 style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", margin: "0" }}>Receipt No.</h4>
+                    <p style={{ fontSize: "18px", fontFamily: "monospace", fontWeight: "bold", color: "#0f172a", margin: "4px 0 0 0" }}>#{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
                   </div>
                 </div>
 
                 {/* Details Grid */}
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "32px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Pet Information</h5>
-                      <p className="font-bold text-[#1e293b]">{selectedVaccinationForReport?.pet.name}</p>
-                      <p className="text-sm text-[#475569]">{selectedVaccinationForReport?.pet.species} • {selectedVaccinationForReport?.pet.breed || "Mixed Breed"}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Pet Information</h5>
+                      <p style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.pet.name}</p>
+                      <p style={{ fontSize: "14px", color: "#475569", margin: "2px 0 0 0" }}>{selectedVaccinationForReport?.pet.species} • {selectedVaccinationForReport?.pet.breed || "Mixed Breed"}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Vaccination Name</h5>
-                      <p className="font-bold text-[#1e293b]">{selectedVaccinationForReport?.name}</p>
-                      <p className="text-sm text-[#475569]">{selectedVaccinationForReport?.type || "Standard"}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Vaccination Name</h5>
+                      <p style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.name}</p>
+                      <p style={{ fontSize: "14px", color: "#475569", margin: "2px 0 0 0" }}>{selectedVaccinationForReport?.type || "Standard"}</p>
                     </div>
                   </div>
-                  <div className="space-y-4">
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Date Administered</h5>
-                      <p className="font-bold text-[#1e293b]">{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Date Administered</h5>
+                      <p style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b", margin: "4px 0 0 0" }}>{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Next Due Date</h5>
-                      <p className="font-bold text-[#3b82f6]">{formatDate(selectedVaccinationForReport?.nextDueDate || null)}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Next Due Date</h5>
+                      <p style={{ fontSize: "16px", fontWeight: "bold", color: "#3b82f6", margin: "4px 0 0 0" }}>{formatDate(selectedVaccinationForReport?.nextDueDate || null)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Clinic Info */}
-                <div className="bg-[#f8fafc] p-4 rounded-lg border border-[#f1f5f9]">
-                  <div className="grid grid-cols-2 gap-4">
+                <div style={{ backgroundColor: "#f8fafc", padding: "16px", borderRadius: "8px", border: "1px solid #f1f5f9", marginBottom: "32px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Administered By</h5>
-                      <p className="text-sm font-semibold text-[#334155]">{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Administered By</h5>
+                      <p style={{ fontSize: "14px", fontWeight: "600", color: "#334155", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Clinic / Facility</h5>
-                      <p className="text-sm font-semibold text-[#334155]">{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
+                      <h5 style={{ fontSize: "10px", fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", margin: "0" }}>Clinic / Facility</h5>
+                      <p style={{ fontSize: "14px", fontWeight: "600", color: "#334155", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Manufacturing Info */}
                 {selectedVaccinationForReport?.batchNumber && (
-                  <div className="pt-4 border-t border-dashed border-[#e2e8f0]">
-                    <div className="flex justify-between items-center text-xs text-[#64748b]">
-                      <span>Manufacturer: <span className="font-semibold text-[#334155]">{selectedVaccinationForReport.manufacturer || "N/A"}</span></span>
-                      <span>Batch No: <span className="font-mono font-semibold text-[#334155]">{selectedVaccinationForReport.batchNumber}</span></span>
+                  <div style={{ paddingTop: "16px", borderTop: "1px dashed #e2e8f0", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px", color: "#64748b" }}>
+                      <span>Manufacturer: <span style={{ fontWeight: "600", color: "#334155" }}>{selectedVaccinationForReport.manufacturer || "N/A"}</span></span>
+                      <span>Batch No: <span style={{ fontFamily: "monospace", fontWeight: "600", color: "#334155" }}>{selectedVaccinationForReport.batchNumber}</span></span>
                     </div>
                   </div>
                 )}
 
                 {/* Footer/Seal */}
-                <div className="flex justify-between items-end pt-4">
-                  <div className="text-[10px] text-[#94a3b8] space-y-1">
-                    <p>Generated on {new Date().toLocaleString()}</p>
-                    <p>PetCare Pro - digital verification verified</p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "16px" }}>
+                  <div style={{ fontSize: "10px", color: "#94a3b8", display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <p style={{ margin: "0" }}>Generated on {new Date().toLocaleString()}</p>
+                    <p style={{ margin: "0" }}>PetCare Pro - digital verification verified</p>
                   </div>
-                  <div className="opacity-20">
-                    <PawPrint className="h-12 w-12 text-[#0f172a]" />
+                  <div style={{ opacity: "0.2" }}>
+                    <PawPrint style={{ height: "48px", width: "48px", color: "#0f172a" }} />
                   </div>
                 </div>
               </div>
