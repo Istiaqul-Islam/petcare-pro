@@ -3,9 +3,6 @@ compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
-# Turso SQLite Database
-# Set TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN in Cloudflare Pages environment
-
 # Environment variables for production
 [vars]
 NODE_ENV = "production"
@@ -13,11 +10,29 @@ DATABASE_MODE = "cloud"
 TURSO_CONNECTION_URL = "libsql://petcaredb-istiaqul-islam.aws-ap-northeast-1.turso.io"
 CLOUDINARY_CLOUD_NAME = "dsvx2gyhs"
 NEXT_PUBLIC_APP_URL = "https://petcare-pro.pages.dev"
-# Note: The following sensitive variables MUST be set as SECRETS in the 
-# Cloudflare Pages dashboard (Settings > Environment Variables):
-# - TURSO_AUTH_TOKEN
-# - IMGBB_API_KEY
+
+# Firebase Public Config (Safe for Wrangler)
+NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyB_4TM2MwzbLELWht-4h2H4jL9ScyD2fvk"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "petcare-pro-5fb04.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID = "petcare-pro-5fb04"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "petcare-pro-5fb04.firebasestorage.app"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "476122087616"
+NEXT_PUBLIC_FIREBASE_APP_ID = "1:476122087616:web:1c3bc07570df41db002d25"
+
+# Firebase Admin Public Fields
+FIREBASE_PROJECT_ID = "petcare-pro-5fb04"
+FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-fbsvc@petcare-pro-5fb04.iam.gserviceaccount.com"
+
+# ⚠️ CRITICAL: DO NOT ADD SECRETS BELOW TO THIS FILE! ⚠️
+# The following variables MUST be added manually as SECRETS in the 
+# Cloudflare Pages Dashboard (Settings > Environment Variables):
+#
+# 1. TURSO_AUTH_TOKEN
+# 2. NEXTAUTH_SECRET
+# 3. IMGBB_API_KEY
+# 4. CLOUDINARY_API_KEY
+# 5. CLOUDINARY_API_SECRET
+# 6. FIREBASE_PRIVATE_KEY (Paste the entire value including BEGIN/END lines)
 
 [ai]
 binding = "AI"
-
