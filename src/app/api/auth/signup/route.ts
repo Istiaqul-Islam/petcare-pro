@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log("📝 [SIGNUP] Inserting user into Turso...");
       await executeDb(
-        "INSERT INTO users (id, email, password, name, phone, address, role, firebaseUid, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO users (id, email, password, name, phone, address, role, firebaseUid, firebaseMetadata, isVerified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           id,
           email.toLowerCase(),
@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
           address || null,
           "user",
           firebaseUid,
+          null, // Metadata will be updated on first login
           0,
           now,
           now,

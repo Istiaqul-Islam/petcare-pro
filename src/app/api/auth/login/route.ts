@@ -125,16 +125,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Update verification status in DB if it was 0 or update firebaseUid if missing
-    if ((user as any).isVerified === 0 || !(user as any).firebaseUid) {
-      try {
-        await executeDb(
-          "UPDATE users SET isVerified = 1, firebaseUid = ?, updatedAt = ? WHERE id = ?",
-          [decodedToken.uid, new Date().toISOString(), (user as any).id]
-        );
-      } catch (dbError: any) {
-        console.error("❌ Failed to update user status in DB:", dbError.message);
-      }
+    // 3. Update verification status and metadata in DB
+    try {
+      await executeDb(
+        "UPDATE users SET isVerified = 1, firebaseUid = ?, firebaseMetadata = ?, updatedAt = ? WHERE id = ?",
+        [
+          decodedToken.uid, 
+          JSON.stringify(decodedToken), 
+          new Date().toISOString(), 
+          (user as any).id
+        ]
+      );
+    } catch (dbError: any) {
+      console.error("❌ Failed to update user status/metadata in DB:", dbError.message);
     }
 
     // 4. Create PetCare session
@@ -151,11 +154,10 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("❌ Login API critical error:", {
       message: error.message,
-      stack: error.stack,
-      cause: error.cause
+      stack: error.stack
     });
     return NextResponse.json(
-      { success: false, error: "An error occurred during login. Please check server logs." },
+      { success: false, error: `Authentication success, but session creation failed: ${error.message}` },
       { status: 500 },
     );
   }

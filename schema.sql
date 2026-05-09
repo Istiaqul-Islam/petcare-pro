@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT DEFAULT 'user',
     isVerified INTEGER DEFAULT 0,
     firebaseUid TEXT UNIQUE,
+    firebaseMetadata TEXT,
     showPets INTEGER DEFAULT 1,
     showEmail INTEGER DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now')),

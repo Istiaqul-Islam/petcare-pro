@@ -20,16 +20,13 @@ export function initializeTurso(): Client {
     return db;
   }
 
-  const env = getEnv();
-
-  let url = env.TURSO_CONNECTION_URL;
-  const authToken = env.TURSO_AUTH_TOKEN;
+  // Directly access process.env for maximum compatibility with Cloudflare nodejs_compat
+  let url = process.env.TURSO_CONNECTION_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN;
 
   if (!url || !authToken) {
-    throw new Error(
-      `Turso credentials missing. URL: ${!!url}, Token: ${!!authToken}. ` +
-      `Set TURSO_CONNECTION_URL and TURSO_AUTH_TOKEN in your .env.local`
-    );
+    console.error("❌ Turso credentials missing from process.env");
+    throw new Error("Database configuration missing");
   }
 
   // MANDATORY for Edge: convert libsql:// to https://
@@ -41,16 +38,10 @@ export function initializeTurso(): Client {
     db = createClient({
       url,
       authToken,
-      fetch: fetch,
     });
-
-    console.log(
-      `🌐 [TURSO] Client initialized for: ${url
-        .replace("https://", "")
-        .split(".")[0]}`
-    );
+    console.log("🌐 [TURSO] Client initialized successfully");
   } catch (error: any) {
-    console.error("🌐 [TURSO] Client creation failed:", error);
+    console.error("🌐 [TURSO] Client creation failed:", error.message);
     throw error;
   }
 
