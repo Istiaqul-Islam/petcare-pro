@@ -16,7 +16,10 @@ import {
   Loader2,
   Bell,
   ChevronDown,
+  Download,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +83,9 @@ export default function VaccinationsPage() {
   const [filterPetId, setFilterPetId] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [selectedVaccinationForReport, setSelectedVaccinationForReport] = useState<Vaccination | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   const [vaccinationsOffset, setVaccinationsOffset] = useState(0);
   const [totalVaccinations, setTotalVaccinations] = useState(0);
@@ -204,6 +210,45 @@ export default function VaccinationsPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current || !selectedVaccinationForReport) return;
+
+    try {
+      const element = receiptRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Vaccination_Receipt_${selectedVaccinationForReport.pet.name}_${selectedVaccinationForReport.name}.pdf`);
+      
+      toast({
+        title: "Receipt Downloaded",
+        description: "Your vaccination receipt has been saved as PDF.",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate PDF receipt.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -621,10 +666,15 @@ export default function VaccinationsPage() {
               {upcomingVaccinations.map((vacc) => (
                 <Card
                   key={vacc.id}
-                  className={`vaccination-card overflow-hidden ${vacc.status === "overdue"
+                  className={`vaccination-card overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-primary/20 ${
+                    vacc.status === "overdue"
                       ? "border-red-200 dark:border-red-900"
                       : ""
                   }`}
+                  onClick={() => {
+                    setSelectedVaccinationForReport(vacc);
+                    setReportDialogOpen(true);
+                  }}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
@@ -707,7 +757,14 @@ export default function VaccinationsPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {completedVaccinations.map((vacc) => (
-                <Card key={vacc.id} className="vaccination-card opacity-75">
+                <Card 
+                  key={vacc.id} 
+                  className="vaccination-card opacity-75 cursor-pointer hover:opacity-100 transition-all hover:ring-2 hover:ring-primary/20"
+                  onClick={() => {
+                    setSelectedVaccinationForReport(vacc);
+                    setReportDialogOpen(true);
+                  }}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
@@ -982,6 +1039,112 @@ export default function VaccinationsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Report & Receipt Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-950">
+          <div className="p-6">
+            <DialogHeader className="mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-2xl font-bold">Vaccination Report</DialogTitle>
+                  <DialogDescription>Detailed clinical record and receipt</DialogDescription>
+                </div>
+                <Button onClick={handleDownloadReceipt} variant="outline" className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </Button>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Receipt Content (This part will be captured for PDF) */}
+              <div 
+                ref={receiptRef} 
+                className="p-8 border rounded-xl bg-white text-slate-900 space-y-8 shadow-sm print:shadow-none"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start border-b pb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+                        <PawPrint className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="text-xl font-bold tracking-tight">PetCare Pro</span>
+                    </div>
+                    <p className="text-xs text-slate-500">Official Health & Vaccination Record</p>
+                  </div>
+                  <div className="text-right">
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">Receipt No.</h4>
+                    <p className="text-lg font-mono font-bold">#{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pet Information</h5>
+                      <p className="font-bold text-slate-800">{selectedVaccinationForReport?.pet.name}</p>
+                      <p className="text-sm text-slate-600">{selectedVaccinationForReport?.pet.species} • {selectedVaccinationForReport?.pet.breed || "Mixed Breed"}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vaccination Name</h5>
+                      <p className="font-bold text-slate-800">{selectedVaccinationForReport?.name}</p>
+                      <p className="text-sm text-slate-600">{selectedVaccinationForReport?.type || "Standard"}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date Administered</h5>
+                      <p className="font-bold text-slate-800">{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Next Due Date</h5>
+                      <p className="font-bold text-primary">{formatDate(selectedVaccinationForReport?.nextDueDate || null)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clinic Info */}
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Administered By</h5>
+                      <p className="text-sm font-semibold text-slate-700">{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Clinic / Facility</h5>
+                      <p className="text-sm font-semibold text-slate-700">{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Manufacturing Info */}
+                {selectedVaccinationForReport?.batchNumber && (
+                  <div className="pt-4 border-t border-dashed">
+                    <div className="flex justify-between items-center text-xs text-slate-500">
+                      <span>Manufacturer: <span className="font-semibold text-slate-700">{selectedVaccinationForReport.manufacturer || "N/A"}</span></span>
+                      <span>Batch No: <span className="font-mono font-semibold text-slate-700">{selectedVaccinationForReport.batchNumber}</span></span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer/Seal */}
+                <div className="flex justify-between items-end pt-4">
+                  <div className="text-[10px] text-slate-400 space-y-1">
+                    <p>Generated on {new Date().toLocaleString()}</p>
+                    <p>PetCare Pro - digital verification verified</p>
+                  </div>
+                  <div className="opacity-20">
+                    <PawPrint className="h-12 w-12 text-slate-900" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

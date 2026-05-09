@@ -70,3 +70,34 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const session = await getSession();
+    const { id } = await params;
+
+    if (!session || session.role !== "admin") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const db = await getDb();
+    await db.prepare("DELETE FROM feedbacks WHERE id = ?").bind(id).run();
+
+    return NextResponse.json({
+      success: true,
+      message: "Feedback deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete feedback error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete feedback" },
+      { status: 500 },
+    );
+  }
+}

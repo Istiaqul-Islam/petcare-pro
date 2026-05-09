@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Eye,
   Send,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,30 @@ export default function AdminFeedbackPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this feedback? This will also remove its impact on the average rating.")) return;
+
+    try {
+      const response = await fetch(`/api/admin/feedback/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Feedback deleted",
+          description: "The feedback has been permanently removed.",
+        });
+        fetchFeedback();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete feedback",
+        variant: "destructive",
+      });
     }
   };
 
@@ -204,18 +229,29 @@ export default function AdminFeedbackPage() {
                         </div>
                       )}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedFeedback(feedback);
-                        setAdminResponse(feedback.adminResponse || "");
-                        setResponseDialogOpen(true);
-                      }}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      View
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedFeedback(feedback);
+                          setAdminResponse(feedback.adminResponse || "");
+                          setResponseDialogOpen(true);
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                        onClick={() => handleDelete(feedback.id)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
