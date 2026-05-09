@@ -554,8 +554,8 @@ export default function VaccinationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold vaccations-header">Vaccinations</h1>
-          <p className="text-muted-foreground vaccations-subtitle">
+          <h1 className="text-3xl font-bold vaccinations-header">Vaccinations</h1>
+          <p className="text-muted-foreground vaccinations-subtitle">
             Track and manage your pets&apos; vaccination records
           </p>
         </div>
@@ -1063,23 +1063,27 @@ export default function VaccinationsPage() {
               {/* Receipt Content (This part will be captured for PDF) */}
               <div 
                 ref={receiptRef} 
-                className="p-8 border rounded-xl bg-white text-slate-900 space-y-8 shadow-sm print:shadow-none"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                className="p-8 border rounded-xl bg-white text-[#0f172a] space-y-8 shadow-sm print:shadow-none"
+                style={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  backgroundColor: "#ffffff",
+                  color: "#0f172a"
+                }}
               >
                 {/* Header */}
-                <div className="flex justify-between items-start border-b pb-6">
+                <div className="flex justify-between items-start border-b pb-6 border-[#e2e8f0]">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+                      <div className="h-8 w-8 rounded bg-[#3b82f6] flex items-center justify-center">
                         <PawPrint className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-xl font-bold tracking-tight">PetCare Pro</span>
+                      <span className="text-xl font-bold tracking-tight text-[#0f172a]">PetCare Pro</span>
                     </div>
-                    <p className="text-xs text-slate-500">Official Health & Vaccination Record</p>
+                    <p className="text-xs text-[#64748b]">Official Health & Vaccination Record</p>
                   </div>
                   <div className="text-right">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">Receipt No.</h4>
-                    <p className="text-lg font-mono font-bold">#{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-[#94a3b8]">Receipt No.</h4>
+                    <p className="text-lg font-mono font-bold text-[#0f172a]">#{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
                   </div>
                 </div>
 
@@ -1087,60 +1091,60 @@ export default function VaccinationsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pet Information</h5>
-                      <p className="font-bold text-slate-800">{selectedVaccinationForReport?.pet.name}</p>
-                      <p className="text-sm text-slate-600">{selectedVaccinationForReport?.pet.species} • {selectedVaccinationForReport?.pet.breed || "Mixed Breed"}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Pet Information</h5>
+                      <p className="font-bold text-[#1e293b]">{selectedVaccinationForReport?.pet.name}</p>
+                      <p className="text-sm text-[#475569]">{selectedVaccinationForReport?.pet.species} • {selectedVaccinationForReport?.pet.breed || "Mixed Breed"}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vaccination Name</h5>
-                      <p className="font-bold text-slate-800">{selectedVaccinationForReport?.name}</p>
-                      <p className="text-sm text-slate-600">{selectedVaccinationForReport?.type || "Standard"}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Vaccination Name</h5>
+                      <p className="font-bold text-[#1e293b]">{selectedVaccinationForReport?.name}</p>
+                      <p className="text-sm text-[#475569]">{selectedVaccinationForReport?.type || "Standard"}</p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date Administered</h5>
-                      <p className="font-bold text-slate-800">{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Date Administered</h5>
+                      <p className="font-bold text-[#1e293b]">{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Next Due Date</h5>
-                      <p className="font-bold text-primary">{formatDate(selectedVaccinationForReport?.nextDueDate || null)}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Next Due Date</h5>
+                      <p className="font-bold text-[#3b82f6]">{formatDate(selectedVaccinationForReport?.nextDueDate || null)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Clinic Info */}
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                <div className="bg-[#f8fafc] p-4 rounded-lg border border-[#f1f5f9]">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Administered By</h5>
-                      <p className="text-sm font-semibold text-slate-700">{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Administered By</h5>
+                      <p className="text-sm font-semibold text-[#334155]">{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
                     </div>
                     <div>
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Clinic / Facility</h5>
-                      <p className="text-sm font-semibold text-slate-700">{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
+                      <h5 className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">Clinic / Facility</h5>
+                      <p className="text-sm font-semibold text-[#334155]">{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Manufacturing Info */}
                 {selectedVaccinationForReport?.batchNumber && (
-                  <div className="pt-4 border-t border-dashed">
-                    <div className="flex justify-between items-center text-xs text-slate-500">
-                      <span>Manufacturer: <span className="font-semibold text-slate-700">{selectedVaccinationForReport.manufacturer || "N/A"}</span></span>
-                      <span>Batch No: <span className="font-mono font-semibold text-slate-700">{selectedVaccinationForReport.batchNumber}</span></span>
+                  <div className="pt-4 border-t border-dashed border-[#e2e8f0]">
+                    <div className="flex justify-between items-center text-xs text-[#64748b]">
+                      <span>Manufacturer: <span className="font-semibold text-[#334155]">{selectedVaccinationForReport.manufacturer || "N/A"}</span></span>
+                      <span>Batch No: <span className="font-mono font-semibold text-[#334155]">{selectedVaccinationForReport.batchNumber}</span></span>
                     </div>
                   </div>
                 )}
 
                 {/* Footer/Seal */}
                 <div className="flex justify-between items-end pt-4">
-                  <div className="text-[10px] text-slate-400 space-y-1">
+                  <div className="text-[10px] text-[#94a3b8] space-y-1">
                     <p>Generated on {new Date().toLocaleString()}</p>
                     <p>PetCare Pro - digital verification verified</p>
                   </div>
                   <div className="opacity-20">
-                    <PawPrint className="h-12 w-12 text-slate-900" />
+                    <PawPrint className="h-12 w-12 text-[#0f172a]" />
                   </div>
                 </div>
               </div>
