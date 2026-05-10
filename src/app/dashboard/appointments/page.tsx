@@ -339,7 +339,6 @@ export default function AppointmentsPage() {
         });
       });
 
-      const appointmentCards = document.querySelectorAll('.appointment-card');
       appointmentCards.forEach(card => {
         card.addEventListener('mouseenter', () => {
           gsap.to(card, {
