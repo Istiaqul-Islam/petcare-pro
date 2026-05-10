@@ -21,6 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Appointment {
   id: string;
@@ -123,6 +130,9 @@ export default function ReceptionistDashboard() {
         if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
         Array.from(el.children).forEach(child => sanitize(child as HTMLElement));
       };
+
+      // ACTUALLY CALL SANITIZE
+      sanitize(reportRef.current);
 
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,

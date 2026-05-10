@@ -241,6 +241,9 @@ export default function VaccinationsPage() {
         Array.from(el.children).forEach(child => sanitize(child as HTMLElement));
       };
 
+      // ACTUALLY CALL SANITIZE
+      sanitize(receiptRef.current);
+
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
         useCORS: true,

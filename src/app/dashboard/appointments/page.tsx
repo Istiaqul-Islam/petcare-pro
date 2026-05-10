@@ -481,6 +481,9 @@ export default function AppointmentsPage() {
         Array.from(el.children).forEach(child => sanitizeElement(child as HTMLElement));
       };
 
+      // ACTUALLY CALL SANITIZE
+      sanitizeElement(reportRef.current);
+
       // 2. Capture with onclone for final polishing
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
