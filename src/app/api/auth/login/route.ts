@@ -12,11 +12,16 @@ const ADMIN_EMAIL = "admin@petcare.com";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as { email?: string; password?: string; idToken?: string };
-    const { email, password, idToken } = body;
+    const body = (await request.json()) as { 
+      email?: string; 
+      password?: string; 
+      idToken?: string;
+      confirmVerification?: boolean;
+    };
+    const { email, password, idToken, confirmVerification } = body;
 
     // DIAGNOSTIC LOGGING
-    console.log("📝 [LOGIN] Attempting login for:", email);
+    console.log("📝 [LOGIN] Attempting login for:", email, { confirmVerification });
     const TURSO_URL = process.env.TURSO_CONNECTION_URL;
     const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
     console.log("📝 [LOGIN] Env check:", { 
@@ -125,18 +130,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Update verification status and clear temporary metadata from DB
+    // 3. Update metadata and verification status
     try {
-      await executeDb(
-        "UPDATE users SET isVerified = 1, firebaseUid = ?, firebaseMetadata = NULL, updatedAt = ? WHERE id = ?",
-        [
-          decodedToken.uid, 
-          new Date().toISOString(), 
-          (user as any).id
-        ]
-      );
+      if (confirmVerification) {
+        // Explicit verification completion
+        await executeDb(
+          "UPDATE users SET isVerified = 1, firebaseUid = ?, firebaseMetadata = NULL, updatedAt = ? WHERE id = ?",
+          [decodedToken.uid, new Date().toISOString(), (user as any).id]
+        );
+        console.log(`✅ [LOGIN] User manually verified: ${email}`);
+      } else {
+        // Standard login: Update UID but preserve existing isVerified status (might be 0 from logout)
+        await executeDb(
+          "UPDATE users SET firebaseUid = ?, updatedAt = ? WHERE id = ?",
+          [decodedToken.uid, new Date().toISOString(), (user as any).id]
+        );
+        console.log(`📝 [LOGIN] Standard login (isVerified remains ${(user as any).isVerified}): ${email}`);
+      }
     } catch (dbError: any) {
-      console.error("❌ Failed to update user status/clear metadata in DB:", dbError.message);
+      console.error("❌ Failed to update user in DB:", dbError.message);
     }
 
     // 4. Create PetCare session

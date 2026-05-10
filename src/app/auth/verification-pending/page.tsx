@@ -50,7 +50,8 @@ export default function VerificationPendingPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             email: auth.currentUser.email,
-            idToken 
+            idToken,
+            confirmVerification: true
           }),
         });
 
