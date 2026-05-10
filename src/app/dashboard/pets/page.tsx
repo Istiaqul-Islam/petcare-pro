@@ -2,9 +2,10 @@
 
 export const runtime = "edge";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import gsap from "gsap";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   PawPrint,
   Plus,
@@ -79,6 +80,18 @@ const getSpeciesIcon = (species: string) => {
 };
 
 export default function PetsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    }>
+      <PetsPageContent />
+    </Suspense>
+  );
+}
+
+function PetsPageContent() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -106,9 +119,26 @@ export default function PetsPage() {
     notes: "",
   });
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   useEffect(() => {
     fetchPets();
   }, []);
+
+  // Handle auto-edit from query param
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (editId && pets.length > 0) {
+      const petToEdit = pets.find(p => p.id === editId);
+      if (petToEdit) {
+        openEditDialog(petToEdit);
+        // Clear the param without refreshing to keep URL clean
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [searchParams, pets]);
 
   const fetchPets = async () => {
     try {

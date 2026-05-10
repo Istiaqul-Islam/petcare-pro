@@ -18,7 +18,10 @@ import {
   MapPin,
   Pill,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Trash2,
+  Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +30,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import gsap from "gsap";
 
 interface Pet {
@@ -68,6 +79,8 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pet, setPet] = useState<Pet | null>(null);
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -113,6 +126,37 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
     }
   };
 
+  const handleDeletePet = async () => {
+    if (!pet) return;
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/pets/${pet.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "Success", description: "Pet removed successfully" });
+        router.push("/dashboard/pets");
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to remove pet", 
+        variant: "destructive" 
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleEditRedirect = () => {
+    // Redirect to pets page with edit query param to trigger the edit dialog there
+    router.push(`/dashboard/pets?edit=${pet?.id}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -134,8 +178,14 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
           </Link>
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline">Edit Details</Button>
-          <Button variant="destructive">Remove Pet</Button>
+          <Button variant="outline" className="gap-2" onClick={handleEditRedirect}>
+            <Edit className="h-4 w-4" />
+            Edit Details
+          </Button>
+          <Button variant="destructive" className="gap-2" onClick={() => setDeleteDialogOpen(true)}>
+            <Trash2 className="h-4 w-4" />
+            Remove Pet
+          </Button>
         </div>
       </div>
 
@@ -229,7 +279,9 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                 <CardTitle>Vaccination History</CardTitle>
                 <CardDescription>Comprehensive record of all administered vaccines</CardDescription>
               </div>
-              <Button size="sm">Add Record</Button>
+              <Button size="sm" asChild>
+                <Link href="/dashboard/vaccinations">Add Record</Link>
+              </Button>
             </CardHeader>
             <CardContent>
               {vaccinations.length > 0 ? (
@@ -277,7 +329,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                 <CardDescription>History of clinical visits and consultations</CardDescription>
               </div>
               <Button size="sm" asChild>
-                <Link href="/dashboard/appointments/new">Book New</Link>
+                <Link href="/dashboard/appointments">Book New</Link>
               </Button>
             </CardHeader>
             <CardContent>
@@ -328,6 +380,36 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Remove Pet Profile
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove <strong>{pet.name}</strong>? This action cannot be undone and all medical records will be archived.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeletePet} disabled={deleting}>
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Yes, Remove Profile"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
