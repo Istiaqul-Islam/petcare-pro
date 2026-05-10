@@ -340,7 +340,7 @@ export default function AppointmentsPage() {
         });
       });
 
-      appointmentCards.forEach(card => {
+      cards.forEach(card => {
         card.addEventListener('mouseenter', () => {
           gsap.to(card, {
             y: -5,
