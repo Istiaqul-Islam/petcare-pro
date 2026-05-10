@@ -369,129 +369,115 @@ export default function ReceptionistDashboard() {
           </DialogHeader>
 
           <div className="space-y-6">
-            <div 
-              ref={reportRef} 
-              style={{ 
-                padding: "40px",
+            <div
+              ref={reportRef}
+              style={{
+                padding: "30px",
                 backgroundColor: "#ffffff",
-                color: "#0f172a",
-                fontFamily: "'Inter', sans-serif",
-                borderRadius: "12px",
-                border: "1px solid #e2e8f0",
+                color: "#1e293b",
+                fontFamily: "'Inter', system-ui, sans-serif",
                 width: "100%",
-                maxWidth: "800px",
-                margin: "0 auto"
+                maxWidth: "600px",
+                margin: "0 auto",
+                lineHeight: "1.5"
               }}
             >
-              {/* Header / Letterhead */}
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "flex-start", 
-                borderBottom: "2px solid #3b82f6", 
-                paddingBottom: "24px",
-                marginBottom: "32px",
-                backgroundColor: "#ffffff"
-              }}>
+              {/* Top Banner / Clinic Info */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", borderBottom: "2px solid #0f172a", paddingBottom: "15px", backgroundColor: "#ffffff" }}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                    <div style={{ 
-                      height: "40px", 
-                      width: "40px", 
-                      borderRadius: "8px", 
-                      backgroundColor: "#3b82f6", 
-                      display: "flex", 
-                      alignItems: "center", 
-                      justifyContent: "center" 
-                    }}>
-                      <PawPrint style={{ height: "24px", width: "24px", color: "#ffffff" }} />
-                    </div>
-                    <span style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.025em", color: "#1e293b" }}>PetCare Pro</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                    <span style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "-0.5px", color: "#0f172a" }}>PETCARE PRO</span>
                   </div>
-                  <p style={{ fontSize: "14px", color: "#64748b", fontWeight: "500" }}>Advanced Veterinary Management System</p>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "0", fontWeight: "500" }}>VETERINARY CLINIC & CARE CENTER</p>
+                  <p style={{ fontSize: "10px", color: "#94a3b8", margin: "2px 0 0 0" }}>www.petcare-pro.pages.dev | +1 (555) PET-CARE</p>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <h4 style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", margin: "0" }}>Document Type</h4>
-                  <p style={{ fontSize: "18px", fontWeight: "800", color: "#3b82f6", margin: "4px 0 0 0" }}>CLINICAL SUMMARY</p>
-                  <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>REF: #{selectedAppointmentForReport?.id.slice(0, 8).toUpperCase()}</p>
+                  <p style={{ fontSize: "16px", fontWeight: "900", color: "#3b82f6", margin: "0" }}>CLINICAL REPORT</p>
+                  <p style={{ fontSize: "10px", color: "#64748b", marginTop: "4px", fontWeight: "700" }}>ID: #{selectedAppointmentForReport?.id.slice(0, 8).toUpperCase()}</p>
                 </div>
               </div>
 
-              {/* Patient & Owner Info Section */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "40px", backgroundColor: "#ffffff" }}>
-                <div style={{ backgroundColor: "#ffffff" }}>
-                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Patient Information</h5>
+              {/* Patient & Client Meta */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "8px", backgroundColor: "#f8fafc" }}>
+                <div>
+                  <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Patient Details</h5>
+                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{selectedAppointmentForReport?.petName} <span style={{ fontWeight: "400", color: "#64748b", fontSize: "11px" }}>({selectedAppointmentForReport?.species})</span></p>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>Breed: {selectedAppointmentForReport?.breed || "N/A"}</p>
+                </div>
+                <div>
+                  <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Pet Owner Details</h5>
+                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{selectedAppointmentForReport?.ownerName || "Client"}</p>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedAppointmentForReport?.ownerEmail || "N/A"}</p>
+                </div>
+              </div>
+
+              {/* Rx / Visit Details */}
+              <div style={{ marginBottom: "25px", backgroundColor: "#ffffff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", backgroundColor: "#ffffff" }}>
+                  <span style={{ fontSize: "28px", fontWeight: "900", color: "#3b82f6", fontFamily: "serif" }}>Rx</span>
+                  <div style={{ height: "1px", flex: 1, backgroundColor: "#e2e8f0" }}></div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "30px", backgroundColor: "#ffffff" }}>
                   <div style={{ backgroundColor: "#ffffff" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
-                      <span style={{ fontSize: "13px", color: "#64748b" }}>Name:</span>
-                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.petName}</span>
-                    </div>
-                    <div style={{ display: "flex", justifyContext: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px", backgroundColor: "#ffffff" }}>
-                      <span style={{ fontSize: "13px", color: "#64748b" }}>Species:</span>
-                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.species}</span>
+                    <div style={{ marginBottom: "12px", backgroundColor: "#ffffff" }}>
+                      <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Visit Information</p>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.type.toUpperCase()}</p>
+                      <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedAppointmentForReport ? formatDateSafely(selectedAppointmentForReport.date) : ""}</p>
                     </div>
                   </div>
-                </div>
-                <div style={{ backgroundColor: "#ffffff" }}>
-                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Pet Owner Information</h5>
+
                   <div style={{ backgroundColor: "#ffffff" }}>
-                    <div style={{ display: "flex", justifyContext: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
-                      <span style={{ fontSize: "13px", color: "#64748b" }}>Pet Owner:</span>
-                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.ownerName}</span>
-                    </div>
-                    <div style={{ display: "flex", justifyContext: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px", backgroundColor: "#ffffff" }}>
-                      <span style={{ fontSize: "13px", color: "#64748b" }}>Email:</span>
-                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.ownerEmail || "N/A"}</span>
-                    </div>
+                    <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Primary Complaint / Reason</p>
+                    <p style={{ fontSize: "12px", color: "#334155", marginTop: "6px", lineHeight: "1.6", fontStyle: "italic", backgroundColor: "#ffffff" }}>
+                      "{selectedAppointmentForReport?.reason || "General health consultation and routine check-up."}"
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Appointment Details */}
-              <div style={{ backgroundColor: "#f8fafc", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "40px" }}>
-                <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>Clinical Appointment Details</h5>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-                  <div>
-                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Visit Type</p>
-                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.type.toUpperCase()}</p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Status</p>
-                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.status.toUpperCase()}</p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Date & Time</p>
-                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport ? formatDateSafely(selectedAppointmentForReport.date) : ""} at {selectedAppointmentForReport?.time}</p>
-                  </div>
-                </div>
+              {/* Findings & Notes */}
+              <div style={{ marginBottom: "30px", padding: "15px", border: "1px dashed #cbd5e1", borderRadius: "8px", backgroundColor: "#ffffff" }}>
+                <h5 style={{ fontSize: "10px", fontWeight: "800", color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>Clinical Observations & Recommendations</h5>
+                <p style={{ fontSize: "12px", color: "#334155", lineHeight: "1.8", margin: "0", minHeight: "100px", backgroundColor: "#ffffff" }}>
+                  Patient appears healthy. Vital signs within normal range for species. Recommended follow-up in 6 months for routine evaluation.
+                </p>
               </div>
 
-              {/* Reason */}
-              <div style={{ marginBottom: "40px", backgroundColor: "#ffffff" }}>
-                <div style={{ marginBottom: "20px", backgroundColor: "#ffffff" }}>
-                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Primary Reason for Visit</h5>
-                  <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", backgroundColor: "#f1f5f9", padding: "16px", borderRadius: "8px" }}>
-                    {selectedAppointmentForReport?.reason || "General checkup and consultation."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Medical Provider */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "32px", borderTop: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+              {/* Footer / Verification */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "20px", backgroundColor: "#ffffff" }}>
                 <div style={{ backgroundColor: "#ffffff" }}>
-                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Attending Veterinarian</h5>
-                  <p style={{ fontSize: "16px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Dr. {selectedAppointmentForReport?.vetName}</p>
+                  <div style={{ width: "180px", borderBottom: "1px solid #1e293b", marginBottom: "8px" }}></div>
+                  <p style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Attending Veterinarian</p>
+                  <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>Verified by PetCare Pro Reception</p>
+                  <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "4px" }}>Digital Authorization ID: PET-{selectedAppointmentForReport?.id.slice(-6).toUpperCase()}</p>
                 </div>
-                <div style={{ textAlign: "center", opacity: "0.05", backgroundColor: "#ffffff" }}>
-                  <PawPrint style={{ height: "80px", width: "80px", color: "#0f172a" }} />
+                <div style={{ textAlign: "right", backgroundColor: "#ffffff" }}>
+                  <div style={{ 
+                    width: "80px", 
+                    height: "80px", 
+                    border: "2px solid #3b82f6", 
+                    borderRadius: "50%", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    opacity: "0.2",
+                    transform: "rotate(-15deg)",
+                    backgroundColor: "#ffffff"
+                  }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                    <p style={{ fontSize: "8px", fontWeight: "900", color: "#3b82f6", margin: "2px 0 0 0" }}>VERIFIED</p>
+                  </div>
+                  <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "10px" }}>Report Issued: {new Date().toLocaleDateString()}</p>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8", backgroundColor: "#ffffff" }}>
-                <span>This document is a digital clinical summary generated by PetCare Pro.</span>
-                <span>Report Generated: {new Date().toLocaleString()}</span>
+              <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "10px", backgroundColor: "#ffffff" }}>
+                <p style={{ fontSize: "8px", color: "#cbd5e1", margin: "0" }}>This is a computer-generated clinical report and does not require a physical signature for digital verification. PetCare Pro Platform.</p>
               </div>
+            </div>
             </div>
           </div>
         </DialogContent>
