@@ -1200,6 +1200,7 @@ export default function VaccinationsPage() {
                 </div>
             </div>
           </div>
+        </div>
         </DialogContent>
       </Dialog>
     </div>
