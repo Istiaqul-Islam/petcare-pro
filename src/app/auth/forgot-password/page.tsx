@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState } from "react";
 import Link from "next/link";
 import { PawPrint, Loader2, Mail, ArrowLeft, Send, Lock } from "lucide-react";

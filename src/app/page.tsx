@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";

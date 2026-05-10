@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useEffect } from "react";
 import { Star, MessageSquare, Send, Clock, CheckCircle, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
