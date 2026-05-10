@@ -468,32 +468,37 @@ export default function AppointmentsPage() {
   }, [searchQuery]);
 
   const handleDownloadReport = async () => {
-    if (!reportRef.current) return;
+    if (!reportRef.current || !selectedAppointmentForReport) return;
 
     try {
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
-        logging: false,
         useCORS: true,
+        logging: false,
         backgroundColor: "#ffffff",
-        windowWidth: reportRef.current.scrollWidth,
-        windowHeight: reportRef.current.scrollHeight,
         onclone: (clonedDoc) => {
-          // Force-remove oklch colors and ensure full height
-          const elements = clonedDoc.getElementsByTagName('*');
-          for (let i = 0; i < elements.length; i++) {
-            const el = elements[i] as HTMLElement;
-            const style = window.getComputedStyle(el);
-            if (style.color.includes('oklch')) el.style.color = '#000000';
-            if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = '#ffffff';
-            if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
-          }
-
-          // Ensure the captured element is not clipped
-          const reportEl = clonedDoc.querySelector('[ref="reportRef"]') || clonedDoc.body.querySelector('div[style*="padding: 40px"]');
-          if (reportEl instanceof HTMLElement) {
-            reportEl.style.height = 'auto';
-            reportEl.style.overflow = 'visible';
+          const element = clonedDoc.querySelector('[data-report="appointment-report"]') as HTMLElement;
+          if (element) {
+            element.style.height = 'auto';
+            element.style.overflow = 'visible';
+            element.style.margin = '0';
+            element.style.padding = '30px';
+            element.style.width = '600px';
+            
+            // Aggressive oklch removal
+            const all = element.getElementsByTagName('*');
+            for (let i = 0; i < all.length; i++) {
+              const el = all[i] as HTMLElement;
+              // Remove oklch from inline styles
+              if (el.style.color && el.style.color.includes('oklch')) el.style.color = '#1e293b';
+              if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
+              if (el.style.borderColor && el.style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
+              
+              // Force black/white/gray for common elements to be safe
+              if (el.tagName === 'P' || el.tagName === 'SPAN' || el.tagName.startsWith('H')) {
+                if (!el.style.color) el.style.color = '#1e293b';
+              }
+            }
           }
         }
       });
@@ -501,25 +506,27 @@ export default function AppointmentsPage() {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
-        unit: "mm",
-        format: "a4",
+        unit: "px",
+        format: [canvas.width / 2, canvas.height / 2],
       });
 
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(`Medical_Report_${selectedAppointmentForReport.pet.name}_${selectedAppointmentForReport.id.slice(0, 8)}.pdf`);
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Medical_Report_${selectedAppointmentForReport?.id.slice(0, 8)}.pdf`);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
       toast({
+        title: "Report Downloaded",
+        description: "Clinical summary has been saved as PDF.",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Download Failed",
+        description: "Please try again or use Chrome/Edge for best results.",
         variant: "destructive",
-        title: "Error",
-        description: "Failed to generate PDF report.",
       });
     }
   };
+
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -982,23 +989,28 @@ export default function AppointmentsPage() {
       </Dialog>
       {/* Medical Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>Appointment Medical Report</DialogTitle>
-                <DialogDescription>Review and download the official clinical summary</DialogDescription>
-              </div>
-              <Button onClick={handleDownloadReport} variant="outline" className="flex items-center gap-2">
+        <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col bg-slate-50">
+          <div className="bg-white border-b p-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+            <div className="flex flex-col">
+              <h3 className="text-lg font-bold text-slate-900">Clinical Summary Report</h3>
+              <p className="text-xs text-slate-500">Official medical record for {selectedAppointmentForReport?.pet.name}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadReport} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shadow-md transition-all active:scale-95">
                 <Download className="h-4 w-4" />
                 Download PDF
               </Button>
+              <Button onClick={() => setReportDialogOpen(false)} variant="ghost" className="h-9 w-9 p-0 rounded-full">
+                <span className="sr-only">Close</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-x h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </Button>
             </div>
-          </DialogHeader>
+          </div>
 
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200">
             <div
               ref={reportRef}
+              data-report="appointment-report"
               style={{
                 padding: "30px",
                 backgroundColor: "#ffffff",
@@ -1007,7 +1019,8 @@ export default function AppointmentsPage() {
                 width: "100%",
                 maxWidth: "600px",
                 margin: "0 auto",
-                lineHeight: "1.5"
+                lineHeight: "1.5",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
               }}
             >
               {/* Top Banner / Clinic Info */}
@@ -1078,11 +1091,12 @@ export default function AppointmentsPage() {
               </div>
 
               {/* Footer / Verification */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "20px", backgroundColor: "#ffffff" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "20px", borderTop: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
                 <div style={{ backgroundColor: "#ffffff" }}>
                   <div style={{ width: "180px", borderBottom: "1px solid #1e293b", marginBottom: "8px" }}></div>
                   <p style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Dr. {selectedAppointmentForReport?.vet.name}</p>
                   <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedAppointmentForReport?.vet.specialization}</p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.vet.clinic}</p>
                   <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "4px" }}>Digital Authorization ID: PET-{selectedAppointmentForReport?.id.slice(-6).toUpperCase()}</p>
                 </div>
                 <div style={{ textAlign: "right", backgroundColor: "#ffffff" }}>

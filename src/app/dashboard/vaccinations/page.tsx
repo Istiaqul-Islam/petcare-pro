@@ -230,43 +230,59 @@ export default function VaccinationsPage() {
   const handleDownloadReceipt = async () => {
     if (!receiptRef.current || !selectedVaccinationForReport) return;
 
-    const canvas = await html2canvas(receiptRef.current, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      onclone: (clonedDoc) => {
-        const element = clonedDoc.querySelector('[ref="receiptRef"]') as HTMLElement || clonedDoc.body.querySelector('div[style*="maxWidth: 600px"]');
-        if (element) {
-          element.style.height = 'auto';
-          element.style.overflow = 'visible';
-          // Fix oklch colors if any
-          const allElements = element.getElementsByTagName('*');
-          for (let i = 0; i < allElements.length; i++) {
-            const el = allElements[i] as HTMLElement;
-            const style = window.getComputedStyle(el);
-            if (style.color && style.color.includes('oklch')) el.style.color = '#1e293b';
-            if (style.backgroundColor && style.backgroundColor.includes('oklch')) el.style.backgroundColor = '#ffffff';
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        onclone: (clonedDoc) => {
+          const element = clonedDoc.querySelector('[data-report="vaccination-report"]') as HTMLElement;
+          if (element) {
+            element.style.height = 'auto';
+            element.style.overflow = 'visible';
+            element.style.margin = '0';
+            element.style.padding = '30px';
+            element.style.width = '600px';
+            
+            const all = element.getElementsByTagName('*');
+            for (let i = 0; i < all.length; i++) {
+              const el = all[i] as HTMLElement;
+              if (el.style.color && el.style.color.includes('oklch')) el.style.color = '#1e293b';
+              if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
+              if (el.style.borderColor && el.style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
+              if (el.tagName === 'P' || el.tagName === 'SPAN' || el.tagName.startsWith('H')) {
+                if (!el.style.color) el.style.color = '#1e293b';
+              }
+            }
           }
         }
-      }
-    });
+      });
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "px",
-      format: [canvas.width / 2, canvas.height / 2],
-    });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [canvas.width / 2, canvas.height / 2],
+      });
 
-    pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
-    pdf.save(`Vaccination_${selectedVaccinationForReport.pet.name}_${selectedVaccinationForReport.name.replace(/\s+/g, '_')}.pdf`);
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(`Vaccination_${selectedVaccinationForReport.pet.name}_${selectedVaccinationForReport.name.replace(/\s+/g, '_')}.pdf`);
 
-    toast({
-      title: "Report Downloaded",
-      description: "Clinical vaccination record has been saved.",
-    });
+      toast({
+        title: "Report Downloaded",
+        description: "Clinical vaccination record has been saved.",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred during PDF generation.",
+        variant: "destructive",
+      });
+    }
   };
+
 
 
   const resetForm = () => {
@@ -1060,147 +1076,150 @@ export default function VaccinationsPage() {
       </Dialog>
       {/* Report & Receipt Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-950">
-          <div className="p-6">
-            <DialogHeader className="mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <DialogTitle className="text-2xl font-bold">Vaccination Report</DialogTitle>
-                  <DialogDescription>Detailed clinical record and receipt</DialogDescription>
-                </div>
-                <Button onClick={handleDownloadReceipt} variant="outline" className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </Button>
-              </div>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              {/* Receipt Content (This part will be captured for PDF) */}
-              <div
-                ref={receiptRef}
-                style={{
-                  padding: "30px",
-                  backgroundColor: "#ffffff",
-                  color: "#1e293b",
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                  width: "100%",
-                  maxWidth: "600px",
-                  margin: "0 auto",
-                  lineHeight: "1.5"
-                }}
-              >
-                {/* Top Banner / Clinic Info */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", borderBottom: "2px solid #0f172a", paddingBottom: "15px", backgroundColor: "#ffffff" }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                      <PawPrint style={{ height: "20px", width: "20px", color: "#3b82f6" }} />
-                      <span style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "-0.5px", color: "#0f172a" }}>PETCARE PRO</span>
-                    </div>
-                    <p style={{ fontSize: "11px", color: "#64748b", margin: "0", fontWeight: "500" }}>VETERINARY CLINIC & CARE CENTER</p>
-                    <p style={{ fontSize: "10px", color: "#94a3b8", margin: "2px 0 0 0" }}>www.petcare-pro.pages.dev | +1 (555) PET-CARE</p>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <p style={{ fontSize: "16px", fontWeight: "900", color: "#3b82f6", margin: "0" }}>VACCINATION RECORD</p>
-                    <p style={{ fontSize: "10px", color: "#64748b", marginTop: "4px", fontWeight: "700" }}>REF: #{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
-                  </div>
-                </div>
-
-                {/* Patient & Client Meta */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "8px", backgroundColor: "#f8fafc" }}>
-                  <div>
-                    <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Patient Details</h5>
-                    <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{selectedVaccinationForReport?.pet.name} <span style={{ fontWeight: "400", color: "#64748b", fontSize: "11px" }}>({selectedVaccinationForReport?.pet.species})</span></p>
-                    <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>Breed: {selectedVaccinationForReport?.pet.breed || "N/A"}</p>
-                  </div>
-                  <div>
-                    <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Pet Owner Details</h5>
-                    <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{currentUser?.name || "Client"}</p>
-                    <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>{currentUser?.email || "N/A"}</p>
-                  </div>
-                </div>
-
-                {/* Rx / Vaccination Details */}
-                <div style={{ marginBottom: "25px", backgroundColor: "#ffffff" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", backgroundColor: "#ffffff" }}>
-                    <span style={{ fontSize: "28px", fontWeight: "900", color: "#3b82f6", fontFamily: "serif" }}>Rx</span>
-                    <div style={{ height: "1px", flex: 1, backgroundColor: "#e2e8f0" }}></div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "30px", backgroundColor: "#ffffff" }}>
-                    <div style={{ backgroundColor: "#ffffff" }}>
-                      <div style={{ marginBottom: "12px", backgroundColor: "#ffffff" }}>
-                        <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Vaccine Name</p>
-                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.name}</p>
-                        <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>Type: {selectedVaccinationForReport?.type || "Standard"}</p>
-                      </div>
-                      <div style={{ backgroundColor: "#ffffff" }}>
-                        <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Administered Date</p>
-                        <p style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
-                      </div>
-                    </div>
-
-                    <div style={{ backgroundColor: "#ffffff" }}>
-                      <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Next Due Date</p>
-                      <p style={{ fontSize: "14px", fontWeight: "800", color: "#3b82f6", marginTop: "6px" }}>
-                        {formatDate(selectedVaccinationForReport?.nextDueDate || null)}
-                      </p>
-                      <p style={{ fontSize: "10px", color: "#64748b", fontStyle: "italic", marginTop: "4px" }}>Recommended follow-up date for continuous immunity.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Provider & Manufacturing Info */}
-                <div style={{ marginBottom: "30px", padding: "15px", border: "1px dashed #cbd5e1", borderRadius: "8px", backgroundColor: "#ffffff" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", backgroundColor: "#ffffff" }}>
-                    <div style={{ backgroundColor: "#ffffff" }}>
-                      <h5 style={{ fontSize: "10px", fontWeight: "800", color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Medical Provider</h5>
-                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#334155", margin: "0" }}>{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
-                      <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
-                    </div>
-                    <div style={{ backgroundColor: "#ffffff" }}>
-                      <h5 style={{ fontSize: "10px", fontWeight: "800", color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Batch Details</h5>
-                      <p style={{ fontSize: "12px", color: "#334155", margin: "0" }}>Mfg: {selectedVaccinationForReport?.manufacturer || "N/A"}</p>
-                      <p style={{ fontSize: "11px", fontFamily: "monospace", color: "#64748b", margin: "2px 0 0 0" }}>Batch: {selectedVaccinationForReport?.batchNumber || "N/A"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer / Verification */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "20px", backgroundColor: "#ffffff" }}>
-                  <div style={{ backgroundColor: "#ffffff" }}>
-                    <div style={{ width: "180px", borderBottom: "1px solid #1e293b", marginBottom: "8px" }}></div>
-                    <p style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Clinical Authorization</p>
-                    <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>Verified Vaccination Record</p>
-                    <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "4px" }}>Digital Authorization ID: VAC-{selectedVaccinationForReport?.id.slice(-6).toUpperCase()}</p>
-                  </div>
-                  <div style={{ textAlign: "right", backgroundColor: "#ffffff" }}>
-                    <div style={{ 
-                      width: "80px", 
-                      height: "80px", 
-                      border: "2px solid #3b82f6", 
-                      borderRadius: "50%", 
-                      display: "flex", 
-                      flexDirection: "column", 
-                      alignItems: "center", 
-                      justifyContent: "center",
-                      opacity: "0.2",
-                      transform: "rotate(-15deg)",
-                      backgroundColor: "#ffffff"
-                    }}>
-                      <PawPrint style={{ height: "20px", width: "20px", color: "#3b82f6" }} />
-                      <p style={{ fontSize: "8px", fontWeight: "900", color: "#3b82f6", margin: "2px 0 0 0" }}>CERTIFIED</p>
-                    </div>
-                    <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "10px" }}>Record Issued: {new Date().toLocaleDateString()}</p>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "10px", backgroundColor: "#ffffff" }}>
-                  <p style={{ fontSize: "8px", color: "#cbd5e1", margin: "0" }}>This is a computer-generated vaccination record and does not require a physical signature for digital verification. PetCare Pro Platform.</p>
-                </div>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col bg-slate-50">
+          <div className="bg-white border-b p-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+            <div className="flex flex-col">
+              <h3 className="text-lg font-bold text-slate-900">Vaccination Record Report</h3>
+              <p className="text-xs text-slate-500">Official record for {selectedVaccinationForReport?.pet.name}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadReceipt} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shadow-md transition-all active:scale-95">
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
+              <Button onClick={() => setReportDialogOpen(false)} variant="ghost" className="h-9 w-9 p-0 rounded-full">
+                <span className="sr-only">Close</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-x h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </Button>
             </div>
           </div>
-        </div>
+
+          <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200">
+            <div
+              ref={receiptRef}
+              data-report="vaccination-report"
+              style={{
+                padding: "30px",
+                backgroundColor: "#ffffff",
+                color: "#1e293b",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                width: "100%",
+                maxWidth: "600px",
+                margin: "0 auto",
+                lineHeight: "1.5",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
+              }}
+            >
+              {/* Top Banner / Clinic Info */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", borderBottom: "2px solid #0f172a", paddingBottom: "15px", backgroundColor: "#ffffff" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                    <span style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "-0.5px", color: "#0f172a" }}>PETCARE PRO</span>
+                  </div>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "0", fontWeight: "500" }}>VETERINARY CLINIC & CARE CENTER</p>
+                  <p style={{ fontSize: "10px", color: "#94a3b8", margin: "2px 0 0 0" }}>www.petcare-pro.pages.dev | +1 (555) PET-CARE</p>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ fontSize: "16px", fontWeight: "900", color: "#3b82f6", margin: "0" }}>VACCINATION RECORD</p>
+                  <p style={{ fontSize: "10px", color: "#64748b", marginTop: "4px", fontWeight: "700" }}>REF: #{selectedVaccinationForReport?.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+              </div>
+
+              {/* Patient & Client Meta */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "8px", backgroundColor: "#f8fafc" }}>
+                <div>
+                  <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Patient Details</h5>
+                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{selectedVaccinationForReport?.pet.name} <span style={{ fontWeight: "400", color: "#64748b", fontSize: "11px" }}>({selectedVaccinationForReport?.pet.species})</span></p>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>Breed: {selectedVaccinationForReport?.pet.breed || "N/A"}</p>
+                </div>
+                <div>
+                  <h5 style={{ fontSize: "9px", fontWeight: "800", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Pet Owner Details</h5>
+                  <p style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", margin: "0" }}>{currentUser?.name || "Client"}</p>
+                  <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>{currentUser?.email || "N/A"}</p>
+                </div>
+              </div>
+
+              {/* Rx / Vaccination Details */}
+              <div style={{ marginBottom: "25px", backgroundColor: "#ffffff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", backgroundColor: "#ffffff" }}>
+                  <span style={{ fontSize: "28px", fontWeight: "900", color: "#3b82f6", fontFamily: "serif" }}>Rx</span>
+                  <div style={{ height: "1px", flex: 1, backgroundColor: "#e2e8f0" }}></div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "30px", backgroundColor: "#ffffff" }}>
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <div style={{ marginBottom: "12px", backgroundColor: "#ffffff" }}>
+                      <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Vaccine Name</p>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedVaccinationForReport?.name}</p>
+                      <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>Type: {selectedVaccinationForReport?.type || "Standard"}</p>
+                    </div>
+                    <div style={{ backgroundColor: "#ffffff" }}>
+                      <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Administered Date</p>
+                      <p style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{formatDate(selectedVaccinationForReport?.dateAdministered || null)}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <p style={{ fontSize: "10px", color: "#94a3b8", fontWeight: "800", textTransform: "uppercase", margin: "0" }}>Next Due Date</p>
+                    <p style={{ fontSize: "14px", fontWeight: "800", color: "#3b82f6", marginTop: "6px" }}>
+                      {formatDate(selectedVaccinationForReport?.nextDueDate || null)}
+                    </p>
+                    <p style={{ fontSize: "10px", color: "#64748b", fontStyle: "italic", marginTop: "4px" }}>Recommended follow-up date for continuous immunity.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Provider & Manufacturing Info */}
+              <div style={{ marginBottom: "30px", padding: "15px", border: "1px dashed #cbd5e1", borderRadius: "8px", backgroundColor: "#ffffff" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", backgroundColor: "#ffffff" }}>
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <h5 style={{ fontSize: "10px", fontWeight: "800", color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Medical Provider</h5>
+                    <p style={{ fontSize: "12px", fontWeight: "700", color: "#334155", margin: "0" }}>{selectedVaccinationForReport?.veterinarian || "Certified Professional"}</p>
+                    <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedVaccinationForReport?.clinic || "PetCare Partner Clinic"}</p>
+                  </div>
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <h5 style={{ fontSize: "10px", fontWeight: "800", color: "#1e293b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Batch Details</h5>
+                    <p style={{ fontSize: "12px", color: "#334155", margin: "0" }}>Mfg: {selectedVaccinationForReport?.manufacturer || "N/A"}</p>
+                    <p style={{ fontSize: "11px", fontFamily: "monospace", color: "#64748b", margin: "2px 0 0 0" }}>Batch: {selectedVaccinationForReport?.batchNumber || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer / Verification */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "20px", borderTop: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
+                <div style={{ backgroundColor: "#ffffff" }}>
+                  <div style={{ width: "180px", borderBottom: "1px solid #1e293b", marginBottom: "8px" }}></div>
+                  <p style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Clinical Authorization</p>
+                  <p style={{ fontSize: "10px", color: "#64748b", margin: "2px 0 0 0" }}>Verified Vaccination Record</p>
+                  <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "4px" }}>Digital Authorization ID: VAC-{selectedVaccinationForReport?.id.slice(-6).toUpperCase()}</p>
+                </div>
+                <div style={{ textAlign: "right", backgroundColor: "#ffffff" }}>
+                  <div style={{ 
+                    width: "80px", 
+                    height: "80px", 
+                    border: "2px solid #3b82f6", 
+                    borderRadius: "50%", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    opacity: "0.2",
+                    transform: "rotate(-15deg)",
+                    backgroundColor: "#ffffff"
+                  }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                    <p style={{ fontSize: "8px", fontWeight: "900", color: "#3b82f6", margin: "2px 0 0 0" }}>CERTIFIED</p>
+                  </div>
+                  <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "10px" }}>Record Issued: {new Date().toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "10px", backgroundColor: "#ffffff" }}>
+                <p style={{ fontSize: "8px", color: "#cbd5e1", margin: "0" }}>This is a computer-generated vaccination record and does not require a physical signature for digital verification. PetCare Pro Platform.</p>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
