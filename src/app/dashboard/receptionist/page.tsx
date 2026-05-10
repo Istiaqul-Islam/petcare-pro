@@ -478,7 +478,6 @@ export default function ReceptionistDashboard() {
                 <p style={{ fontSize: "8px", color: "#cbd5e1", margin: "0" }}>This is a computer-generated clinical report and does not require a physical signature for digital verification. PetCare Pro Platform.</p>
               </div>
             </div>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

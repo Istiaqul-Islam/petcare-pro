@@ -1198,11 +1198,6 @@ export default function VaccinationsPage() {
                 <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #f1f5f9", paddingTop: "10px", backgroundColor: "#ffffff" }}>
                   <p style={{ fontSize: "8px", color: "#cbd5e1", margin: "0" }}>This is a computer-generated vaccination record and does not require a physical signature for digital verification. PetCare Pro Platform.</p>
                 </div>
-              </div>
-                    <PawPrint style={{ height: "48px", width: "48px", color: "#0f172a" }} />
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </DialogContent>
