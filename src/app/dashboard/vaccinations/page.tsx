@@ -560,7 +560,6 @@ export default function VaccinationsPage() {
       }
 
       // Tab hover effects
-      const tabTriggers = document.querySelectorAll('.vaccination-tab-trigger');
       tabTriggers.forEach(tab => {
         tab.addEventListener('mouseenter', () => {
           gsap.to(tab, {

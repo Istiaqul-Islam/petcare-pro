@@ -213,7 +213,7 @@ export default function AppointmentsPage() {
         { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
       );
 
-      const cards = document.querySelectorAll('.appointment-card');
+      const cards = document.querySelectorAll(".appointment-card");
       if (cards.length > 0) {
         gsap.fromTo(
           cards,
