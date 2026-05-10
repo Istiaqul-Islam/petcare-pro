@@ -4,7 +4,10 @@ export const runtime = "edge";
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Clock, Calendar as CalendarIcon, CheckCircle, XCircle, User, PawPrint, Phone, Mail } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, CheckCircle, XCircle, User, PawPrint, Phone, Mail, FileText, Download } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import { useRef } from "react";
 import {
   Card,
   CardContent,
@@ -45,7 +48,9 @@ export default function ReceptionistDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [veterinarians, setVeterinarians] = useState<Veterinarian[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedAppointmentForReport, setSelectedAppointmentForReport] = useState<Appointment | null>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
 
@@ -104,6 +109,40 @@ export default function ReceptionistDashboard() {
     }
   };
 
+  const handleDownloadReport = async () => {
+    if (!reportRef.current) return;
+
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Reception_Report_${selectedAppointmentForReport?.id.slice(0, 8)}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate PDF report.",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -128,15 +167,26 @@ export default function ReceptionistDashboard() {
     <Card key={apt.id} className="flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <Badge variant={
-            apt.status === 'pending' ? 'outline' : 
-            (apt.status === 'confirmed' || apt.status === 'scheduled') ? 'default' : 
-            apt.status === 'cancelled' ? 'destructive' : 'secondary'
-          }>
-            {apt.status.toUpperCase()}
-          </Badge>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">{apt.type}</p>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2 text-muted-foreground hover:text-primary"
+              onClick={() => {
+                setSelectedAppointmentForReport(apt);
+                setReportDialogOpen(true);
+              }}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Report
+            </Button>
+            <Badge variant={
+              apt.status === 'pending' ? 'outline' : 
+              (apt.status === 'confirmed' || apt.status === 'scheduled') ? 'default' : 
+              apt.status === 'cancelled' ? 'destructive' : 'secondary'
+            }>
+              {apt.status.toUpperCase()}
+            </Badge>
           </div>
         </div>
         <CardTitle className="mt-2 text-lg flex items-center gap-2">
@@ -282,6 +332,149 @@ export default function ReceptionistDashboard() {
           )}
         </TabsContent>
       </Tabs>
+      {/* Medical Report Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Appointment Clinical Report</DialogTitle>
+                <DialogDescription>Review and download the clinical summary for this visit</DialogDescription>
+              </div>
+              <Button onClick={handleDownloadReport} variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div 
+              ref={reportRef} 
+              style={{ 
+                padding: "40px",
+                backgroundColor: "#ffffff",
+                color: "#0f172a",
+                fontFamily: "'Inter', sans-serif",
+                borderRadius: "12px",
+                border: "1px solid #e2e8f0",
+                width: "100%",
+                maxWidth: "800px",
+                margin: "0 auto"
+              }}
+            >
+              {/* Header / Letterhead */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "flex-start", 
+                borderBottom: "2px solid #3b82f6", 
+                paddingBottom: "24px",
+                marginBottom: "32px"
+              }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <div style={{ 
+                      height: "40px", 
+                      width: "40px", 
+                      borderRadius: "8px", 
+                      backgroundColor: "#3b82f6", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center" 
+                    }}>
+                      <PawPrint className="h-6 w-6" style={{ color: "#ffffff" }} />
+                    </div>
+                    <span style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.025em", color: "#1e293b" }}>PetCare Pro</span>
+                  </div>
+                  <p style={{ fontSize: "14px", color: "#64748b", fontWeight: "500" }}>Advanced Veterinary Management System</p>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <h4 style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", margin: "0" }}>Document Type</h4>
+                  <p style={{ fontSize: "18px", fontWeight: "800", color: "#3b82f6", margin: "4px 0 0 0" }}>CLINICAL SUMMARY</p>
+                  <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>REF: #{selectedAppointmentForReport?.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+              </div>
+
+              {/* Patient & Owner Info Section */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "40px" }}>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Patient Information</h5>
+                  <div style={{ spaceY: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Name:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.petName}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Species:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.species}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Owner Information</h5>
+                  <div style={{ spaceY: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Owner:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.ownerName}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Email:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.ownerEmail || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div style={{ backgroundColor: "#f8fafc", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "40px" }}>
+                <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>Clinical Appointment Details</h5>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Visit Type</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.type.toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Status</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.status.toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Date & Time</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport ? formatDateSafely(selectedAppointmentForReport.date) : ""} at {selectedAppointmentForReport?.time}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div style={{ marginBottom: "40px" }}>
+                <div style={{ marginBottom: "20px" }}>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Primary Reason for Visit</h5>
+                  <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", backgroundColor: "#f1f5f9", padding: "16px", borderRadius: "8px" }}>
+                    {selectedAppointmentForReport?.reason || "General checkup and consultation."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Medical Provider */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "32px", borderTop: "1px solid #e2e8f0" }}>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Attending Veterinarian</h5>
+                  <p style={{ fontSize: "16px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Dr. {selectedAppointmentForReport?.vetName}</p>
+                </div>
+                <div style={{ textAlign: "center", opacity: "0.05" }}>
+                  <PawPrint style={{ height: "80px", width: "80px", color: "#0f172a" }} />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8" }}>
+                <span>This document is a digital clinical summary generated by PetCare Pro.</span>
+                <span>Report Generated: {new Date().toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

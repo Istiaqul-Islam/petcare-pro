@@ -22,7 +22,14 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Download,
+  FileText,
+  User as UserIcon,
+  Building2,
+  PawPrint
 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +124,11 @@ export default function AppointmentsPage() {
     notes: "",
   });
 
+  const [selectedAppointmentForReport, setSelectedAppointmentForReport] = useState<Appointment | null>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -142,6 +154,11 @@ export default function AppointmentsPage() {
       if (petsRes.ok) {
         const petsData = (await petsRes.json()) as { pets?: Pet[] };
         setPets(petsData.pets || []);
+      }
+      const userRes = await fetch("/api/user");
+      if (userRes.ok) {
+        const data = await userRes.json();
+        if (data.user) setCurrentUser(data.user);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -443,6 +460,40 @@ export default function AppointmentsPage() {
     setVetsPage(1);
   }, [searchQuery]);
 
+  const handleDownloadReport = async () => {
+    if (!reportRef.current) return;
+
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Medical_Report_${selectedAppointmentForReport?.id.slice(0, 8)}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate PDF report.",
+      });
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
       weekday: "short",
@@ -666,17 +717,31 @@ export default function AppointmentsPage() {
                       <Stethoscope className="h-6 w-6 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => router.push(`/dashboard/vets/${apt.vet.id}`)}
-                          className="font-semibold text-primary hover:underline"
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/dashboard/vets/${apt.vet.id}`)}
+                            className="font-semibold text-primary hover:underline"
+                          >
+                            {apt.vet.name}
+                          </button>
+                          <Badge className={getStatusColor(apt.status)}>
+                            {getStatusIcon(apt.status)}
+                            <span className="ml-1">{apt.status}</span>
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setSelectedAppointmentForReport(apt);
+                            setReportDialogOpen(true);
+                          }}
                         >
-                          {apt.vet.name}
-                        </button>
-                        <Badge className={getStatusColor(apt.status)}>
-                          {getStatusIcon(apt.status)}
-                          <span className="ml-1">{apt.status}</span>
-                        </Badge>
+                          <FileText className="h-4 w-4 mr-1" />
+                          Report
+                        </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {apt.vet.specialization} • {apt.vet.clinic}
@@ -721,16 +786,30 @@ export default function AppointmentsPage() {
                       <Stethoscope className="h-6 w-6 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => router.push(`/dashboard/vets/${apt.vet.id}`)}
-                          className="font-semibold text-primary hover:underline"
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/dashboard/vets/${apt.vet.id}`)}
+                            className="font-semibold text-primary hover:underline"
+                          >
+                            {apt.vet.name}
+                          </button>
+                          <Badge className={getStatusColor(apt.status)}>
+                            {apt.status}
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setSelectedAppointmentForReport(apt);
+                            setReportDialogOpen(true);
+                          }}
                         >
-                          {apt.vet.name}
-                        </button>
-                        <Badge className={getStatusColor(apt.status)}>
-                          {apt.status}
-                        </Badge>
+                          <FileText className="h-4 w-4 mr-1" />
+                          Report
+                        </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(apt.date)} at {apt.time}
@@ -872,6 +951,163 @@ export default function AppointmentsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Medical Report Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Appointment Medical Report</DialogTitle>
+                <DialogDescription>Review and download the official clinical summary</DialogDescription>
+              </div>
+              <Button onClick={handleDownloadReport} variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div 
+              ref={reportRef} 
+              style={{ 
+                padding: "40px",
+                backgroundColor: "#ffffff",
+                color: "#0f172a",
+                fontFamily: "'Inter', sans-serif",
+                borderRadius: "12px",
+                border: "1px solid #e2e8f0",
+                width: "100%",
+                maxWidth: "800px",
+                margin: "0 auto"
+              }}
+            >
+              {/* Header / Letterhead */}
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "flex-start", 
+                borderBottom: "2px solid #3b82f6", 
+                paddingBottom: "24px",
+                marginBottom: "32px"
+              }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <div style={{ 
+                      height: "40px", 
+                      width: "40px", 
+                      borderRadius: "8px", 
+                      backgroundColor: "#3b82f6", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center" 
+                    }}>
+                      <PawPrint className="h-6 w-6" style={{ color: "#ffffff" }} />
+                    </div>
+                    <span style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.025em", color: "#1e293b" }}>PetCare Pro</span>
+                  </div>
+                  <p style={{ fontSize: "14px", color: "#64748b", fontWeight: "500" }}>Advanced Veterinary Management System</p>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <h4 style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", margin: "0" }}>Document Type</h4>
+                  <p style={{ fontSize: "18px", fontWeight: "800", color: "#3b82f6", margin: "4px 0 0 0" }}>CLINICAL SUMMARY</p>
+                  <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>REF: #{selectedAppointmentForReport?.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+              </div>
+
+              {/* Patient & Owner Info Section */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "40px" }}>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Patient Information</h5>
+                  <div style={{ spaceY: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Name:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.pet.name}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Species:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.pet.species}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Owner Information</h5>
+                  <div style={{ spaceY: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Owner:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{currentUser?.name || "Client"}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Email:</span>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{currentUser?.email || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div style={{ backgroundColor: "#f8fafc", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0", marginBottom: "40px" }}>
+                <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>Clinical Appointment Details</h5>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Visit Type</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.type.toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Status</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.status.toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Date & Time</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport ? formatDate(selectedAppointmentForReport.date) : ""} at {selectedAppointmentForReport?.time}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", margin: "0" }}>Duration</p>
+                    <p style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.duration} Minutes</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason & Notes */}
+              <div style={{ marginBottom: "40px" }}>
+                <div style={{ marginBottom: "20px" }}>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Primary Reason for Visit</h5>
+                  <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", backgroundColor: "#f1f5f9", padding: "16px", borderRadius: "8px" }}>
+                    {selectedAppointmentForReport?.reason || "General checkup and consultation."}
+                  </p>
+                </div>
+                {selectedAppointmentForReport?.notes && (
+                  <div>
+                    <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Clinical Notes</h5>
+                    <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", borderLeft: "4px solid #e2e8f0", paddingLeft: "16px" }}>
+                      {selectedAppointmentForReport.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Medical Provider */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "32px", borderTop: "1px solid #e2e8f0" }}>
+                <div>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Attending Veterinarian</h5>
+                  <p style={{ fontSize: "16px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Dr. {selectedAppointmentForReport?.vet.name}</p>
+                  <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedAppointmentForReport?.vet.specialization}</p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.vet.clinic}</p>
+                </div>
+                <div style={{ textAlign: "center", opacity: "0.05" }}>
+                  <PawPrint style={{ height: "80px", width: "80px", color: "#0f172a" }} />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8" }}>
+                <span>This document is a digital clinical summary generated by PetCare Pro.</span>
+                <span>Report Generated: {new Date().toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
