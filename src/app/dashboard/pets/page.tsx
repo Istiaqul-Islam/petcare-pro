@@ -4,6 +4,7 @@ export const runtime = "edge";
 
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
+import Link from "next/link";
 import {
   PawPrint,
   Plus,
