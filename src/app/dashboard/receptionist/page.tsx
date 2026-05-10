@@ -4,7 +4,7 @@ export const runtime = "edge";
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Clock, Calendar as CalendarIcon, CheckCircle, XCircle, User, PawPrint, Phone, Mail, FileText, Download } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, CheckCircle, XCircle, User, PawPrint, Phone, Mail, FileText, Download, X } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
@@ -36,6 +36,7 @@ interface Appointment {
   ownerPhone: string | null;
   ownerEmail: string;
   vetName: string;
+  breed?: string;
 }
 
 interface Veterinarian {
@@ -50,6 +51,7 @@ export default function ReceptionistDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedAppointmentForReport, setSelectedAppointmentForReport] = useState<Appointment | null>(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
@@ -113,6 +115,15 @@ export default function ReceptionistDashboard() {
     if (!reportRef.current || !selectedAppointmentForReport) return;
 
     try {
+      // Pre-sanitize oklch colors
+      const sanitize = (el: HTMLElement) => {
+        const style = window.getComputedStyle(el);
+        if (style.color.includes('oklch')) el.style.color = '#1e293b';
+        if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
+        if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
+        Array.from(el.children).forEach(child => sanitize(child as HTMLElement));
+      };
+
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
@@ -123,19 +134,13 @@ export default function ReceptionistDashboard() {
           if (element) {
             element.style.height = 'auto';
             element.style.overflow = 'visible';
-            element.style.margin = '0';
-            element.style.padding = '30px';
-            element.style.width = '600px';
-            
             const all = element.getElementsByTagName('*');
             for (let i = 0; i < all.length; i++) {
               const el = all[i] as HTMLElement;
-              if (el.style.color && el.style.color.includes('oklch')) el.style.color = '#1e293b';
-              if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
-              if (el.style.borderColor && el.style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
-              if (el.tagName === 'P' || el.tagName === 'SPAN' || el.tagName.startsWith('H')) {
-                if (!el.style.color) el.style.color = '#1e293b';
-              }
+              const s = window.getComputedStyle(el);
+              if (s.color.includes('oklch')) el.style.color = '#1e293b';
+              if (s.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
+              if (s.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
             }
           }
         }
@@ -159,11 +164,12 @@ export default function ReceptionistDashboard() {
       console.error("PDF generation error:", error);
       toast({
         title: "Download Failed",
-        description: "An error occurred during PDF generation.",
+        description: "An error occurred. Chrome/Edge recommended.",
         variant: "destructive",
       });
     }
   };
+
 
 
   if (loading) {
@@ -357,25 +363,30 @@ export default function ReceptionistDashboard() {
       </Tabs>
       {/* Medical Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col bg-slate-50">
+        <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col bg-slate-50 border-none shadow-2xl">
+          <div className="sr-only">
+            <DialogTitle>Receptionist Report for {selectedAppointmentForReport?.petName}</DialogTitle>
+            <DialogDescription>Administrative clinical verification document</DialogDescription>
+          </div>
+
           <div className="bg-white border-b p-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
             <div className="flex flex-col">
-              <h3 className="text-lg font-bold text-slate-900">Receptionist Clinical Summary</h3>
-              <p className="text-xs text-slate-500">Official record for {selectedAppointmentForReport?.petName}</p>
+              <h3 className="text-lg font-bold text-slate-900 leading-tight">Receptionist Clinical Summary</h3>
+              <p className="text-xs text-slate-500 font-medium">Official record for {selectedAppointmentForReport?.petName}</p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleDownloadReport} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shadow-md transition-all active:scale-95">
+              <Button onClick={handleDownloadReport} className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shadow-md transition-all active:scale-95 px-4">
                 <Download className="h-4 w-4" />
                 Download PDF
               </Button>
-              <Button onClick={() => setReportDialogOpen(false)} variant="ghost" className="h-9 w-9 p-0 rounded-full">
+              <Button onClick={() => setReportDialogOpen(false)} variant="ghost" className="h-9 w-9 p-0 rounded-full hover:bg-slate-100 transition-colors">
                 <span className="sr-only">Close</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-x h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <X className="h-4 w-4 text-slate-500" />
               </Button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200 bg-slate-50/50">
             <div
               ref={reportRef}
               data-report="receptionist-report"
@@ -388,14 +399,14 @@ export default function ReceptionistDashboard() {
                 maxWidth: "600px",
                 margin: "0 auto",
                 lineHeight: "1.5",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
+                boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
               }}
             >
               {/* Top Banner / Clinic Info */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", borderBottom: "2px solid #0f172a", paddingBottom: "15px", backgroundColor: "#ffffff" }}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
                     <span style={{ fontSize: "20px", fontWeight: "900", letterSpacing: "-0.5px", color: "#0f172a" }}>PETCARE PRO</span>
                   </div>
                   <p style={{ fontSize: "11px", color: "#64748b", margin: "0", fontWeight: "500" }}>VETERINARY CLINIC & CARE CENTER</p>
@@ -476,7 +487,7 @@ export default function ReceptionistDashboard() {
                     transform: "rotate(-15deg)",
                     backgroundColor: "#ffffff"
                   }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-paw-print"><circle cx="11" cy="5" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="7" cy="9" r="2"/><circle cx="11" cy="21" r="2"/><path d="M4.27 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M15.63 14.7c-1.14 1.07-1.14 2.8 0 3.87 1.14 1.07 2.97 1.07 4.1 0 1.14-1.07 1.14-2.8 0-3.87-1.14-1.07-2.97-1.07-4.1 0Z"/><path d="M10 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Z"/></svg>
                     <p style={{ fontSize: "8px", fontWeight: "900", color: "#3b82f6", margin: "2px 0 0 0" }}>VERIFIED</p>
                   </div>
                   <p style={{ fontSize: "9px", color: "#94a3b8", marginTop: "10px" }}>Report Issued: {new Date().toLocaleDateString()}</p>
