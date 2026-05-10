@@ -561,72 +561,77 @@ export default function PetsPage() {
             const SpeciesIcon = getSpeciesIcon(pet.species);
             return (
               <Card key={pet.id} className="pet-card group overflow-hidden">
-                {/* Photo */}
-                <div className="aspect-4/3 relative bg-muted pet-photo-container">
-                  {pet.photo ? (
-                    <img
-                      src={pet.photo}
-                      alt={pet.name}
-                      className="w-full h-full object-cover pet-photo"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center pet-placeholder">
-                      <SpeciesIcon className="h-16 w-16 text-muted-foreground/50" />
-                    </div>
-                  )}
-                  <div className="absolute top-2 right-2 pet-actions">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="secondary"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity pet-menu-btn"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(pet)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedPet(pet);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-
-                {/* Info */}
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-semibold text-lg">{pet.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {pet.breed || pet.species}
-                      </p>
-                    </div>
-                    {pet.gender && (
-                      <Badge variant="secondary">
-                        {pet.gender === "male" ? "♂" : "♀"}
-                      </Badge>
+                {/* Clickable Area */}
+                <Link href={`/dashboard/pets/${pet.id}`} className="block cursor-pointer">
+                  {/* Photo */}
+                  <div className="aspect-4/3 relative bg-muted pet-photo-container">
+                    {pet.photo ? (
+                      <img
+                        src={pet.photo}
+                        alt={pet.name}
+                        className="w-full h-full object-cover pet-photo"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center pet-placeholder">
+                        <SpeciesIcon className="h-16 w-16 text-muted-foreground/50" />
+                      </div>
                     )}
                   </div>
 
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {pet.birthDate && <p>{getAge(pet.birthDate)}</p>}
-                    {pet.weight && <p>{pet.weight} kg</p>}
-                    {pet.color && <p>{pet.color}</p>}
-                  </div>
-                </CardContent>
+                  {/* Info */}
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-lg">{pet.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {pet.breed || pet.species}
+                        </p>
+                      </div>
+                      {pet.gender && (
+                        <Badge variant="secondary">
+                          {pet.gender === "male" ? "♂" : "♀"}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      {pet.birthDate && <p>{getAge(pet.birthDate)}</p>}
+                      {pet.weight && <p>{pet.weight} kg</p>}
+                      {pet.color && <p>{pet.color}</p>}
+                    </div>
+                  </CardContent>
+                </Link>
+
+                {/* Independent Actions Menu */}
+                <div className="absolute top-2 right-2 z-10 pet-actions">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity pet-menu-btn shadow-md"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEditDialog(pet)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => {
+                          setSelectedPet(pet);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </Card>
             );
           })}

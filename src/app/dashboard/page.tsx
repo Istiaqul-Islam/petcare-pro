@@ -475,11 +475,12 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {pets.slice(0, 4).map((pet) => (
-                  <div
+                  <Link
                     key={pet.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    href={`/dashboard/pets/${pet.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   >
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl overflow-hidden">
                       {pet.photo ? (
                         <img src={pet.photo} alt={pet.name} className="h-12 w-12 rounded-full object-cover" />
                       ) : (
@@ -487,12 +488,13 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium">{pet.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium truncate">{pet.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
                         {pet.breed || pet.species}
                       </p>
                     </div>
-                  </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/30" />
+                  </Link>
                 ))}
               </div>
             )}

@@ -37,18 +37,16 @@ export async function GET(
     }
 
     // Fetch vaccination history
-    const vaccinationsResult = await db
+    const vaccinations = await db
       .prepare("SELECT * FROM vaccinations WHERE petId = ? ORDER BY dateAdministered DESC")
       .bind(id)
       .all();
-    const vaccinations = vaccinationsResult.results;
 
     // Fetch appointment history
-    const appointmentsResult = await db
-      .prepare("SELECT * FROM appointments WHERE petId = ? ORDER BY appointmentDate DESC, appointmentTime DESC")
+    const appointments = await db
+      .prepare("SELECT * FROM appointments WHERE petId = ? ORDER BY date DESC, time DESC")
       .bind(id)
       .all();
-    const appointments = appointmentsResult.results;
 
     return NextResponse.json({ 
       success: true, 

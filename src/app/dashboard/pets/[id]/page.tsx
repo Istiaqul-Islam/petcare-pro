@@ -47,19 +47,19 @@ interface Pet {
 
 interface Vaccination {
   id: string;
-  vaccineName: string;
+  name: string; -- Matched to schema 'name'
   dateAdministered: string;
   nextDueDate: string;
   notes: string;
-  administeredBy: string;
+  veterinarian: string; -- Matched to schema 'veterinarian'
 }
 
 interface Appointment {
   id: string;
-  serviceType: string;
+  type: string; -- Matched to schema 'type'
   status: string;
-  appointmentDate: string;
-  appointmentTime: string;
+  date: string; -- Matched to schema 'date'
+  time: string; -- Matched to schema 'time'
   reason: string;
 }
 
@@ -239,7 +239,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                       <div className="absolute -left-[41px] top-0 h-6 w-6 rounded-full bg-primary border-4 border-background shadow-sm" />
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="space-y-1">
-                          <h4 className="text-lg font-bold">{v.vaccineName}</h4>
+                          <h4 className="text-lg font-bold">{v.name}</h4>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             Administered on {v.dateAdministered}
@@ -247,7 +247,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                           {v.notes && <p className="text-sm mt-2 p-3 bg-muted rounded-lg">{v.notes}</p>}
                         </div>
                         <div className="text-right">
-                          <Badge variant="outline" className="mb-2">Dr. {v.administeredBy}</Badge>
+                          {v.veterinarian && <Badge variant="outline" className="mb-2">Dr. {v.veterinarian}</Badge>}
                           {v.nextDueDate && (
                             <div className="flex items-center gap-2 text-sm font-medium text-amber-600">
                               <AlertCircle className="h-4 w-4" />
@@ -294,7 +294,7 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-bold text-lg">{a.serviceType}</h4>
+                            <h4 className="font-bold text-lg">{a.type}</h4>
                             <p className="text-sm text-muted-foreground">{a.reason}</p>
                           </div>
                           <Badge variant={
@@ -307,11 +307,11 @@ export default function PetDetailPage({ params }: { params: Promise<{ id: string
                         <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {a.appointmentDate}
+                            {a.date}
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {a.appointmentTime}
+                            {a.time}
                           </span>
                         </div>
                       </div>
