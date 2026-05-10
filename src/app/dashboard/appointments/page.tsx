@@ -185,9 +185,10 @@ export default function AppointmentsPage() {
   };
 
   useEffect(() => {
-    if (appointments.length > 0) {
+    const cards = document.querySelectorAll('.appointment-card');
+    if (cards.length > 0) {
       gsap.fromTo(
-        ".appointment-card",
+        cards,
         { opacity: 0, y: 30, scale: 0.95 },
         {
           opacity: 1,
@@ -212,10 +213,10 @@ export default function AppointmentsPage() {
         { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
       );
 
-      const appointmentCards = document.querySelectorAll('.appointment-card');
-      if (appointmentCards.length > 0) {
+      const cards = document.querySelectorAll('.appointment-card');
+      if (cards.length > 0) {
         gsap.fromTo(
-          ".appointment-card",
+          cards,
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power2.out", delay: 0.2 }
         );
@@ -475,6 +476,17 @@ export default function AppointmentsPage() {
         logging: false,
         useCORS: true,
         backgroundColor: "#ffffff",
+        onclone: (clonedDoc) => {
+          // Force-remove oklch colors which html2canvas can't parse
+          const elements = clonedDoc.getElementsByTagName('*');
+          for (let i = 0; i < elements.length; i++) {
+            const el = elements[i] as HTMLElement;
+            const style = window.getComputedStyle(el);
+            if (style.color.includes('oklch')) el.style.color = '#000000';
+            if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = '#ffffff';
+            if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
+          }
+        }
       });
 
       const imgData = canvas.toDataURL("image/png");
