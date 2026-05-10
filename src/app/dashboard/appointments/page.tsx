@@ -212,11 +212,14 @@ export default function AppointmentsPage() {
         { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }
       );
 
-      gsap.fromTo(
-        ".appointments-subtitle",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
-      );
+      const appointmentCards = document.querySelectorAll('.appointment-card');
+      if (appointmentCards.length > 0) {
+        gsap.fromTo(
+          ".appointment-card",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power2.out", delay: 0.2 }
+        );
+      }
 
       // Tabs animations
       gsap.fromTo(
@@ -400,7 +403,11 @@ export default function AppointmentsPage() {
       });
 
       return () => {
-        gsap.killTweensOf(".appointments-header, .appointments-subtitle, .tabs-container, .tab-trigger, .search-container, .search-icon, .vet-card, .vet-avatar, .vet-rating, .empty-vets-state, .empty-vets-icon, .appointment-card");
+        const targets = ".appointments-header, .appointments-subtitle, .tabs-container, .tab-trigger, .search-container, .search-icon, .vet-card, .vet-avatar, .vet-rating, .empty-vets-state, .empty-vets-icon, .appointment-card";
+        const validTargets = targets.split(", ").filter(t => document.querySelector(t)).join(", ");
+        if (validTargets) {
+          gsap.killTweensOf(validTargets);
+        }
       };
     }
   }, [loading, vets.length, appointments.length]);
@@ -991,7 +998,8 @@ export default function AppointmentsPage() {
                 alignItems: "flex-start", 
                 borderBottom: "2px solid #3b82f6", 
                 paddingBottom: "24px",
-                marginBottom: "32px"
+                marginBottom: "32px",
+                backgroundColor: "#ffffff"
               }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
@@ -1004,7 +1012,7 @@ export default function AppointmentsPage() {
                       alignItems: "center", 
                       justifyContent: "center" 
                     }}>
-                      <PawPrint className="h-6 w-6" style={{ color: "#ffffff" }} />
+                      <PawPrint style={{ height: "24px", width: "24px", color: "#ffffff" }} />
                     </div>
                     <span style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.025em", color: "#1e293b" }}>PetCare Pro</span>
                   </div>
@@ -1018,28 +1026,28 @@ export default function AppointmentsPage() {
               </div>
 
               {/* Patient & Owner Info Section */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "40px" }}>
-                <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "40px", backgroundColor: "#ffffff" }}>
+                <div style={{ backgroundColor: "#ffffff" }}>
                   <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Patient Information</h5>
-                  <div style={{ spaceY: "8px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
                       <span style={{ fontSize: "13px", color: "#64748b" }}>Name:</span>
                       <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{selectedAppointmentForReport?.pet.name}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px", backgroundColor: "#ffffff" }}>
                       <span style={{ fontSize: "13px", color: "#64748b" }}>Species:</span>
                       <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{selectedAppointmentForReport?.pet.species}</span>
                     </div>
                   </div>
                 </div>
-                <div>
+                <div style={{ backgroundColor: "#ffffff" }}>
                   <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Owner Information</h5>
-                  <div style={{ spaceY: "8px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ backgroundColor: "#ffffff" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
                       <span style={{ fontSize: "13px", color: "#64748b" }}>Owner:</span>
                       <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{currentUser?.name || "Client"}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px", backgroundColor: "#ffffff" }}>
                       <span style={{ fontSize: "13px", color: "#64748b" }}>Email:</span>
                       <span style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>{currentUser?.email || "N/A"}</span>
                     </div>
@@ -1071,17 +1079,17 @@ export default function AppointmentsPage() {
               </div>
 
               {/* Reason & Notes */}
-              <div style={{ marginBottom: "40px" }}>
-                <div style={{ marginBottom: "20px" }}>
+              <div style={{ marginBottom: "40px", backgroundColor: "#ffffff" }}>
+                <div style={{ marginBottom: "20px", backgroundColor: "#ffffff" }}>
                   <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Primary Reason for Visit</h5>
                   <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", backgroundColor: "#f1f5f9", padding: "16px", borderRadius: "8px" }}>
                     {selectedAppointmentForReport?.reason || "General checkup and consultation."}
                   </p>
                 </div>
                 {selectedAppointmentForReport?.notes && (
-                  <div>
+                  <div style={{ backgroundColor: "#ffffff" }}>
                     <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Clinical Notes</h5>
-                    <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", borderLeft: "4px solid #e2e8f0", paddingLeft: "16px" }}>
+                    <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#334155", borderLeft: "4px solid #e2e8f0", paddingLeft: "16px", backgroundColor: "#ffffff" }}>
                       {selectedAppointmentForReport.notes}
                     </p>
                   </div>
@@ -1089,20 +1097,20 @@ export default function AppointmentsPage() {
               </div>
 
               {/* Medical Provider */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "32px", borderTop: "1px solid #e2e8f0" }}>
-                <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "32px", borderTop: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}>
+                <div style={{ backgroundColor: "#ffffff" }}>
                   <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Attending Veterinarian</h5>
                   <p style={{ fontSize: "16px", fontWeight: "800", color: "#1e293b", margin: "0" }}>Dr. {selectedAppointmentForReport?.vet.name}</p>
                   <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>{selectedAppointmentForReport?.vet.specialization}</p>
                   <p style={{ fontSize: "12px", color: "#94a3b8", margin: "4px 0 0 0" }}>{selectedAppointmentForReport?.vet.clinic}</p>
                 </div>
-                <div style={{ textAlign: "center", opacity: "0.05" }}>
+                <div style={{ textAlign: "center", opacity: "0.05", backgroundColor: "#ffffff" }}>
                   <PawPrint style={{ height: "80px", width: "80px", color: "#0f172a" }} />
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8" }}>
+              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px dashed #e2e8f0", display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#94a3b8", backgroundColor: "#ffffff" }}>
                 <span>This document is a digital clinical summary generated by PetCare Pro.</span>
                 <span>Report Generated: {new Date().toLocaleString()}</span>
               </div>
