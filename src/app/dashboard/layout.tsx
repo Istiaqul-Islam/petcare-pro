@@ -204,8 +204,8 @@ export default function DashboardLayout({
         
         // --- VERIFICATION CHECK ---
         // If user is not verified, redirect to pending page
-        // (Except if they are already on the pending page)
-        if (userData && userData.isVerified === 0 && pathname !== "/auth/verification-pending") {
+        // (Except if they are already on the pending page or if they are an admin)
+        if (userData && userData.isVerified === 0 && userData.role !== "admin" && pathname !== "/auth/verification-pending") {
           router.push("/auth/verification-pending");
         }
       } else {

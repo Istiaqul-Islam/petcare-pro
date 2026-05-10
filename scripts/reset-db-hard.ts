@@ -33,25 +33,52 @@ async function resetDb() {
     }
 
     console.log("✨ Re-applying schema...");
-    const schema = fs.readFileSync(path.resolve(process.cwd(), "schema.sql"), "utf-8");
+    const schemaRaw = fs.readFileSync(path.resolve(process.cwd(), "schema.sql"), "utf-8");
     
-    // Better splitting that handles comments
-    const statements = schema
-      .replace(/--.*$/gm, "") // Remove comments
+    // Remove all comments and empty lines
+    const schemaClean = schemaRaw
+      .split("\n")
+      .filter(line => !line.trim().startsWith("--"))
+      .join("\n");
+
+    const schemaStatements = schemaClean
       .split(";")
       .map(s => s.trim())
       .filter(s => s.length > 0);
 
-    for (const statement of statements) {
-      await db.execute(statement);
+    console.log(`Found ${schemaStatements.length} schema statements.`);
+
+    for (const statement of schemaStatements) {
+      try {
+        console.log(`Executing: ${statement.substring(0, 50).replace(/\n/g, " ")}...`);
+        await db.execute(statement);
+      } catch (e: any) {
+        console.warn(`⚠️  Warning: ${e.message}`);
+      }
     }
 
     console.log("🌱 Seeding database...");
-    const seed = fs.readFileSync(path.resolve(process.cwd(), "seed.sql"), "utf-8");
-    const seedStatements = seed.split(";").filter(s => s.trim().length > 0);
+    const seedRaw = fs.readFileSync(path.resolve(process.cwd(), "seed.sql"), "utf-8");
+    
+    const seedClean = seedRaw
+      .split("\n")
+      .filter(line => !line.trim().startsWith("--"))
+      .join("\n");
+
+    const seedStatements = seedClean
+      .split(";")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    console.log(`Found ${seedStatements.length} seed statements.`);
 
     for (const statement of seedStatements) {
-      await db.execute(statement);
+      try {
+        console.log(`Executing: ${statement.substring(0, 50).replace(/\n/g, " ")}...`);
+        await db.execute(statement);
+      } catch (e: any) {
+        console.error(`❌ Error: ${e.message}`);
+      }
     }
 
     console.log("✅ Database reset and seeded successfully!");

@@ -1,19 +1,19 @@
 -- schema.sql
--- Pet Care Management System - D1 Compatible Schema
--- Works with both Cloudflare D1 and local better-sqlite3
+-- Pet Care Management System - Final Harmonized Schema
+-- Fully aligned with API JOINs and Clinical logic.
 
--- Users table
+-- 1. Users table
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    password TEXT, -- Used ONLY for Admin bypass; NULL for standard Firebase users
+    password TEXT, 
     name TEXT,
     avatar TEXT,
     phone TEXT,
     address TEXT,
-    role TEXT DEFAULT 'user', -- 'user', 'receptionist', 'vet', 'admin'
+    role TEXT DEFAULT 'user', 
     isVerified INTEGER DEFAULT 0,
-    firebaseUid TEXT UNIQUE, -- The primary link to Firebase Auth
+    firebaseUid TEXT UNIQUE,
     firebaseMetadata TEXT,
     showPets INTEGER DEFAULT 1,
     showEmail INTEGER DEFAULT 0,
@@ -21,26 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
     updatedAt TEXT DEFAULT (datetime('now'))
 );
 
--- Pets table
-CREATE TABLE IF NOT EXISTS pets (
-    id TEXT PRIMARY KEY,
-    userId TEXT NOT NULL,
-    name TEXT NOT NULL,
-    species TEXT NOT NULL,
-    breed TEXT,
-    gender TEXT,
-    birthDate TEXT,
-    weight REAL,
-    color TEXT,
-    photo TEXT,
-    notes TEXT,
-    isActive INTEGER DEFAULT 1,
-    createdAt TEXT DEFAULT (datetime('now')),
-    updatedAt TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- Veterinarians table
+-- 2. Veterinarians table
 CREATE TABLE IF NOT EXISTS veterinarians (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -64,75 +45,21 @@ CREATE TABLE IF NOT EXISTS veterinarians (
     updatedAt TEXT DEFAULT (datetime('now'))
 );
 
--- Appointments table
-CREATE TABLE IF NOT EXISTS appointments (
-    id TEXT PRIMARY KEY,
-    userId TEXT NOT NULL,
-    petId TEXT NOT NULL,
-    vetId TEXT NOT NULL,
-    date TEXT NOT NULL,
-    time TEXT NOT NULL,
-    duration INTEGER DEFAULT 30,
-    reason TEXT,
-    type TEXT DEFAULT 'consultation',
-    status TEXT DEFAULT 'pending',
-    notes TEXT,
-    fee REAL,
-    createdAt TEXT DEFAULT (datetime('now')),
-    updatedAt TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (petId) REFERENCES pets(id) ON DELETE CASCADE,
-    FOREIGN KEY (vetId) REFERENCES veterinarians(id) ON DELETE CASCADE
-);
-
--- Vaccinations table for medical history
-CREATE TABLE IF NOT EXISTS vaccinations (
-    id TEXT PRIMARY KEY,
-    petId TEXT NOT NULL,
-    userId TEXT NOT NULL,
-    vaccineName TEXT NOT NULL,
-    dateAdministered TEXT NOT NULL,
-    nextDueDate TEXT,
-    notes TEXT,
-    administeredBy TEXT, -- Doctor's name
-    createdAt TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (petId) REFERENCES pets(id) ON DELETE CASCADE,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- Appointments table
-CREATE TABLE IF NOT EXISTS appointments (
-    id TEXT PRIMARY KEY,
-    userId TEXT NOT NULL,
-    petId TEXT NOT NULL,
-    vetId TEXT, -- Assigned doctor
-    serviceType TEXT NOT NULL,
-    status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'completed', 'cancelled'
-    appointmentDate TEXT NOT NULL,
-    appointmentTime TEXT NOT NULL,
-    reason TEXT,
-    notes TEXT,
-    totalAmount REAL DEFAULT 0,
-    paymentStatus TEXT DEFAULT 'pending', -- 'pending', 'paid'
-    createdAt TEXT DEFAULT (datetime('now')),
-    updatedAt TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (userId) REFERENCES users(id),
-    FOREIGN KEY (petId) REFERENCES pets(id)
-);
-
--- Pets table
+-- 3. Pets table (Harmonized with API expectations)
 CREATE TABLE IF NOT EXISTS pets (
     id TEXT PRIMARY KEY,
-    userId TEXT NOT NULL, -- Keep userId for compatibility
+    userId TEXT NOT NULL,
     name TEXT NOT NULL,
     species TEXT NOT NULL,
     breed TEXT,
-    age TEXT,
+    age TEXT, -- UI display age
+    birthDate TEXT, -- API expected field
     weight TEXT,
     gender TEXT,
     color TEXT,
-    photo TEXT, -- Keep photo for compatibility
-    medicalNotes TEXT,
+    photo TEXT,
+    notes TEXT, -- API expected field
+    medicalNotes TEXT, -- Clinical field
     bloodGroup TEXT,
     isNeutered INTEGER DEFAULT 0,
     lastCheckup TEXT,
@@ -142,7 +69,65 @@ CREATE TABLE IF NOT EXISTS pets (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Comments table
+-- 4. Appointments table
+CREATE TABLE IF NOT EXISTS appointments (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    petId TEXT NOT NULL,
+    vetId TEXT, 
+    date TEXT NOT NULL,
+    time TEXT NOT NULL,
+    duration INTEGER DEFAULT 30,
+    reason TEXT,
+    type TEXT DEFAULT 'consultation',
+    status TEXT DEFAULT 'pending', 
+    notes TEXT,
+    fee REAL DEFAULT 0,
+    paymentStatus TEXT DEFAULT 'pending',
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (petId) REFERENCES pets(id) ON DELETE CASCADE,
+    FOREIGN KEY (vetId) REFERENCES veterinarians(id) ON DELETE SET NULL
+);
+
+-- 5. Vaccinations table
+CREATE TABLE IF NOT EXISTS vaccinations (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    petId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT,
+    manufacturer TEXT,
+    dateAdministered TEXT,
+    nextDueDate TEXT,
+    veterinarian TEXT,
+    clinic TEXT,
+    batchNumber TEXT,
+    notes TEXT,
+    status TEXT DEFAULT 'completed',
+    reminderSent INTEGER DEFAULT 0,
+    reminderDays INTEGER DEFAULT 7,
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (petId) REFERENCES pets(id) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 6. Posts table
+CREATE TABLE IF NOT EXISTS posts (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    content TEXT NOT NULL,
+    image TEXT,
+    likesCount INTEGER DEFAULT 0,
+    commentsCount INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 7. Comments table
 CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY,
     postId TEXT NOT NULL,
@@ -157,13 +142,13 @@ CREATE TABLE IF NOT EXISTS comments (
     FOREIGN KEY (parentId) REFERENCES comments(id) ON DELETE CASCADE
 );
 
--- Reactions table (replaces likes for extensibility)
+-- 8. Reactions table
 CREATE TABLE IF NOT EXISTS reactions (
     id TEXT PRIMARY KEY,
     postId TEXT,
     commentId TEXT,
     userId TEXT NOT NULL,
-    type TEXT DEFAULT 'heart', -- heart, like, care, haha, wow, cry
+    type TEXT DEFAULT 'heart',
     createdAt TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY (commentId) REFERENCES comments(id) ON DELETE CASCADE,
@@ -171,7 +156,7 @@ CREATE TABLE IF NOT EXISTS reactions (
     CHECK (postId IS NOT NULL OR commentId IS NOT NULL)
 );
 
--- Feedback table
+-- 9. Feedbacks table
 CREATE TABLE IF NOT EXISTS feedbacks (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
@@ -188,7 +173,7 @@ CREATE TABLE IF NOT EXISTS feedbacks (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Notifications table
+-- 10. Notifications table
 CREATE TABLE IF NOT EXISTS notifications (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
@@ -201,7 +186,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Receptionist to Doctor Mapping table
+-- 11. Receptionist to Doctor Mapping
 CREATE TABLE IF NOT EXISTS receptionist_doctors (
     receptionistId TEXT NOT NULL,
     vetId TEXT NOT NULL,

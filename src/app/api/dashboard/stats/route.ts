@@ -33,7 +33,7 @@ export async function GET() {
 
     const vaccinationsCount = await db
       .prepare(
-        "SELECT COUNT(*) as count FROM vaccinations WHERE userId = ? AND status = 'scheduled' AND nextDueDate >= datetime('now')",
+        "SELECT COUNT(*) as count FROM vaccinations WHERE userId = ? AND nextDueDate >= datetime('now')",
       )
       .bind(session.userId)
       .first<{ count: number }>();
