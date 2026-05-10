@@ -86,6 +86,7 @@ export default function VaccinationsPage() {
   const [saving, setSaving] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedVaccinationForReport, setSelectedVaccinationForReport] = useState<Vaccination | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const [vaccinationsOffset, setVaccinationsOffset] = useState(0);
@@ -112,9 +113,10 @@ export default function VaccinationsPage() {
 
   const fetchData = async () => {
     try {
-      const [vaccinationsRes, petsRes] = await Promise.all([
+      const [vaccinationsRes, petsRes, userRes] = await Promise.all([
         fetch(`/api/vaccinations?limit=${VACCINATIONS_LIMIT}&offset=0`),
         fetch("/api/pets"),
+        fetch("/api/user"),
       ]);
 
       if (vaccinationsRes.ok) {
@@ -129,6 +131,10 @@ export default function VaccinationsPage() {
       if (petsRes.ok) {
         const data = (await petsRes.json()) as { pets?: Pet[] };
         setPets((data.pets || []) as any);
+      }
+      if (userRes.ok) {
+        const data = (await userRes.json()) as { user?: { name: string; email: string } };
+        if (data.user) setCurrentUser(data.user);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -214,6 +220,11 @@ export default function VaccinationsPage() {
     }
   };
 
+  const toTitleCase = (str: string | null) => {
+    if (!str) return "N/A";
+    return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
   const handleDownloadReceipt = async () => {
     if (!selectedVaccinationForReport) return;
 
@@ -245,6 +256,15 @@ export default function VaccinationsPage() {
       pdf.setTextColor(secondaryColor);
       pdf.text("Official Health & Vaccination Record", 35, 33);
 
+      // User Information
+      if (currentUser) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.setTextColor(secondaryColor);
+        pdf.text(`OWNER: ${toTitleCase(currentUser.name)}`, 35, 38);
+        pdf.text(`EMAIL: ${currentUser.email.toLowerCase()}`, 35, 42);
+      }
+
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(8);
       pdf.setTextColor(secondaryColor);
@@ -268,7 +288,7 @@ export default function VaccinationsPage() {
       
       pdf.setFontSize(12);
       pdf.setTextColor(textColor);
-      pdf.text(selectedVaccinationForReport.pet.name, 20, 67);
+      pdf.text(toTitleCase(selectedVaccinationForReport.pet.name), 20, 67);
       
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
@@ -283,7 +303,7 @@ export default function VaccinationsPage() {
       
       pdf.setFontSize(12);
       pdf.setTextColor(textColor);
-      pdf.text(selectedVaccinationForReport.name, 20, 92);
+      pdf.text(toTitleCase(selectedVaccinationForReport.name), 20, 92);
       
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);

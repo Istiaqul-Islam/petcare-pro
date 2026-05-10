@@ -22,6 +22,8 @@ export async function GET(
     }
 
     const db = await getDb();
+    
+    // Fetch pet details
     const pet = await db
       .prepare("SELECT * FROM pets WHERE id = ? AND userId = ? LIMIT 1")
       .bind(id, session.userId)
@@ -34,7 +36,26 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, pet });
+    // Fetch vaccination history
+    const vaccinationsResult = await db
+      .prepare("SELECT * FROM vaccinations WHERE petId = ? ORDER BY dateAdministered DESC")
+      .bind(id)
+      .all();
+    const vaccinations = vaccinationsResult.results;
+
+    // Fetch appointment history
+    const appointmentsResult = await db
+      .prepare("SELECT * FROM appointments WHERE petId = ? ORDER BY appointmentDate DESC, appointmentTime DESC")
+      .bind(id)
+      .all();
+    const appointments = appointmentsResult.results;
+
+    return NextResponse.json({ 
+      success: true, 
+      pet, 
+      vaccinations, 
+      appointments 
+    });
   } catch (error) {
     console.error("Get pet error:", error);
     return NextResponse.json(
@@ -59,26 +80,28 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as { name?: string; species?: string; breed?: string; gender?: string; birthDate?: string; weight?: string; color?: string; photo?: string; notes?: string };
-    const {
-      name,
-      species,
-      breed,
-      gender,
-      birthDate,
-      weight,
-      color,
-      photo,
-      notes,
-    } = body;
-
+    const body = (await request.json()) as { 
+      name?: string; 
+      species?: string; 
+      breed?: string; 
+      gender?: string; 
+      age?: string;
+      weight?: string; 
+      color?: string; 
+      photo?: string; 
+      medicalNotes?: string;
+      bloodGroup?: string;
+      isNeutered?: number;
+      lastCheckup?: string;
+    };
+    
     const db = await getDb();
 
     // Verify ownership
     const existingPet = await db
       .prepare("SELECT * FROM pets WHERE id = ? AND userId = ? LIMIT 1")
       .bind(id, session.userId)
-      .first<Record<string, unknown>>();
+      .first<Record<string, any>>();
 
     if (!existingPet) {
       return NextResponse.json(
@@ -89,18 +112,35 @@ export async function PUT(
 
     const now = nowISO();
     await db.prepare(
-      `UPDATE pets SET name = ?, species = ?, breed = ?, gender = ?, birthDate = ?, weight = ?, color = ?, photo = ?, notes = ?, updatedAt = ? WHERE id = ?`,
+      `UPDATE pets SET 
+        name = ?, 
+        species = ?, 
+        breed = ?, 
+        gender = ?, 
+        age = ?,
+        weight = ?, 
+        color = ?, 
+        photo = ?, 
+        medicalNotes = ?, 
+        bloodGroup = ?,
+        isNeutered = ?,
+        lastCheckup = ?,
+        updatedAt = ? 
+      WHERE id = ?`,
     )
       .bind(
-        name || existingPet.name,
-        species || existingPet.species,
-        breed ?? null,
-        gender ?? null,
-        birthDate || null,
-        weight ? parseFloat(weight) : null,
-        color ?? null,
-        photo ?? null,
-        notes ?? null,
+        body.name || existingPet.name,
+        body.species || existingPet.species,
+        body.breed ?? existingPet.breed,
+        body.gender ?? existingPet.gender,
+        body.age ?? existingPet.age,
+        body.weight ?? existingPet.weight,
+        body.color ?? existingPet.color,
+        body.photo ?? existingPet.photo,
+        body.medicalNotes ?? existingPet.medicalNotes,
+        body.bloodGroup ?? existingPet.bloodGroup,
+        body.isNeutered ?? existingPet.isNeutered,
+        body.lastCheckup ?? existingPet.lastCheckup,
         now,
         id,
       )

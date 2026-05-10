@@ -24,22 +24,14 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { 
       name?: string; 
       email?: string; 
-      password?: string; 
       phone?: string; 
       address?: string;
       firebaseUid?: string;
     };
-    const { name, email, password, phone, address, firebaseUid } = body;
+    const { name, email, phone, address, firebaseUid } = body;
 
     // DIAGNOSTIC LOGGING
     console.log("📝 [SIGNUP] Attempting signup for:", email);
-    const TURSO_URL = process.env.TURSO_CONNECTION_URL;
-    const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
-    console.log("📝 [SIGNUP] Env check:", { 
-      hasUrl: !!TURSO_URL, 
-      hasToken: !!TURSO_TOKEN,
-      urlPrefix: TURSO_URL?.substring(0, 10) 
-    });
 
     // Validate required fields
     if (!name || !email || !firebaseUid) {

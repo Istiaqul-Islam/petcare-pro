@@ -59,9 +59,13 @@ export async function GET(request: NextRequest) {
       args: queryArgs
     });
 
+    // Fetch all active veterinarians
+    const vetsResult = await db.execute("SELECT id, name, specialization FROM veterinarians WHERE isActive = 1");
+
     return NextResponse.json({ 
       success: true, 
       appointments: appointments.rows,
+      veterinarians: vetsResult.rows,
       _debug: {
         role: session.role,
         isAdmin,
@@ -80,11 +84,15 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await requireReceptionist();
-    const { appointmentId, status, notificationMessage } = (await request.json()) as { appointmentId: string; status: string; notificationMessage?: string };
+    const { appointmentId, status, vetId, notificationMessage } = (await request.json()) as { 
+      appointmentId: string; 
+      status?: string; 
+      vetId?: string;
+      notificationMessage?: string;
+    };
 
-    if (!appointmentId || !status) {
-      return NextResponse.json({ error: "Missing appointmentId or status" }, { status: 400 });
+    if (!appointmentId) {
+      return NextResponse.json({ error: "Missing appointmentId" }, { status: 400 });
     }
 
     const db = getTurso();
@@ -115,23 +123,35 @@ export async function PATCH(request: NextRequest) {
     const notificationId = generateId();
 
     const title = status === 'confirmed' ? 'Appointment Confirmed' : (status === 'cancelled' ? 'Appointment Cancelled' : 'Appointment Update');
-    const defaultMsg = `Your appointment with ${vetName} has been ${status}.`;
+    const defaultMsg = `Your appointment status is now ${status}.`;
     const msg = notificationMessage || defaultMsg;
 
-    const statements = [
-      {
+    const statements = [];
+    
+    if (status) {
+      statements.push({
         sql: "UPDATE appointments SET status = ?, updatedAt = datetime('now') WHERE id = ?",
         args: [status, appointmentId]
-      },
-      {
+      });
+      
+      statements.push({
         sql: 'INSERT INTO notifications (id, userId, type, title, message, actionUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
         args: [notificationId, appointmentUserId, 'appointment', title, msg, '/dashboard/appointments', nowISO()]
-      }
-    ];
+      });
+    }
 
-    await db.batch(statements, "write");
+    if (vetId) {
+      statements.push({
+        sql: "UPDATE appointments SET vetId = ?, updatedAt = datetime('now') WHERE id = ?",
+        args: [vetId, appointmentId]
+      });
+    }
 
-    return NextResponse.json({ success: true, message: `Appointment status updated to ${status}` });
+    if (statements.length > 0) {
+      await db.batch(statements, "write");
+    }
+
+    return NextResponse.json({ success: true, message: "Appointment updated successfully" });
   } catch (error: any) {
     if (error.message.includes("Unauthorized")) {
       return NextResponse.json({ error: error.message }, { status: 401 });

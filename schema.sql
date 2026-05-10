@@ -6,14 +6,14 @@
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
+    password TEXT, -- Used ONLY for Admin bypass; NULL for standard Firebase users
     name TEXT,
     avatar TEXT,
     phone TEXT,
     address TEXT,
-    role TEXT DEFAULT 'user',
+    role TEXT DEFAULT 'user', -- 'user', 'receptionist', 'vet', 'admin'
     isVerified INTEGER DEFAULT 0,
-    firebaseUid TEXT UNIQUE,
+    firebaseUid TEXT UNIQUE, -- The primary link to Firebase Auth
     firebaseMetadata TEXT,
     showPets INTEGER DEFAULT 1,
     showEmail INTEGER DEFAULT 0,
@@ -85,40 +85,58 @@ CREATE TABLE IF NOT EXISTS appointments (
     FOREIGN KEY (vetId) REFERENCES veterinarians(id) ON DELETE CASCADE
 );
 
--- Vaccinations table
+-- Vaccinations table for medical history
 CREATE TABLE IF NOT EXISTS vaccinations (
     id TEXT PRIMARY KEY,
     petId TEXT NOT NULL,
     userId TEXT NOT NULL,
-    name TEXT NOT NULL,
-    type TEXT,
-    manufacturer TEXT,
-    dateAdministered TEXT,
+    vaccineName TEXT NOT NULL,
+    dateAdministered TEXT NOT NULL,
     nextDueDate TEXT,
-    veterinarian TEXT,
-    clinic TEXT,
-    batchNumber TEXT,
     notes TEXT,
-    status TEXT DEFAULT 'scheduled',
-    reminderSent INTEGER DEFAULT 0,
-    reminderDays INTEGER DEFAULT 7,
+    administeredBy TEXT, -- Doctor's name
     createdAt TEXT DEFAULT (datetime('now')),
-    updatedAt TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (petId) REFERENCES pets(id) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Posts table (Social)
-CREATE TABLE IF NOT EXISTS posts (
+-- Appointments table
+CREATE TABLE IF NOT EXISTS appointments (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
-    content TEXT NOT NULL,
-    images TEXT,
-    videos TEXT,
-    audios TEXT,
-    likesCount INTEGER DEFAULT 0,
-    commentsCount INTEGER DEFAULT 0,
-    isPublic INTEGER DEFAULT 1,
+    petId TEXT NOT NULL,
+    vetId TEXT, -- Assigned doctor
+    serviceType TEXT NOT NULL,
+    status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'completed', 'cancelled'
+    appointmentDate TEXT NOT NULL,
+    appointmentTime TEXT NOT NULL,
+    reason TEXT,
+    notes TEXT,
+    totalAmount REAL DEFAULT 0,
+    paymentStatus TEXT DEFAULT 'pending', -- 'pending', 'paid'
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (petId) REFERENCES pets(id)
+);
+
+-- Pets table
+CREATE TABLE IF NOT EXISTS pets (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL, -- Keep userId for compatibility
+    name TEXT NOT NULL,
+    species TEXT NOT NULL,
+    breed TEXT,
+    age TEXT,
+    weight TEXT,
+    gender TEXT,
+    color TEXT,
+    photo TEXT, -- Keep photo for compatibility
+    medicalNotes TEXT,
+    bloodGroup TEXT,
+    isNeutered INTEGER DEFAULT 0,
+    lastCheckup TEXT,
+    isActive INTEGER DEFAULT 1,
     createdAt TEXT DEFAULT (datetime('now')),
     updatedAt TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE

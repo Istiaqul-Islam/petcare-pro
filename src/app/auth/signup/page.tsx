@@ -151,7 +151,6 @@ export default function SignupPage() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password,
           phone: formData.phone || undefined,
           firebaseUid: user.uid,
         }),

@@ -33,8 +33,15 @@ interface Appointment {
   vetName: string;
 }
 
+interface Veterinarian {
+  id: string;
+  name: string;
+  specialization: string;
+}
+
 export default function ReceptionistDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [veterinarians, setVeterinarians] = useState<Veterinarian[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   
@@ -48,9 +55,13 @@ export default function ReceptionistDashboard() {
     try {
       const response = await fetch("/api/receptionist/appointments");
       if (response.ok) {
-        const data = (await response.json()) as { appointments: Appointment[]; _debug?: any };
-        console.log("Receptionist Appointments Debug:", data._debug);
+        const data = (await response.json()) as { 
+          appointments: Appointment[]; 
+          veterinarians: Veterinarian[];
+          _debug?: any 
+        };
         setAppointments(data.appointments || []);
+        setVeterinarians(data.veterinarians || []);
       }
     } catch (error) {
       console.error("Fetch appointments error:", error);
@@ -68,17 +79,17 @@ export default function ReceptionistDashboard() {
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateAppointment = async (id: string, updates: { status?: string; vetId?: string }) => {
     setUpdatingId(id);
     try {
       const response = await fetch("/api/receptionist/appointments", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appointmentId: id, status })
+        body: JSON.stringify({ appointmentId: id, ...updates })
       });
 
       if (response.ok) {
-        toast({ title: "Success", description: `Appointment ${status} successfully.` });
+        toast({ title: "Success", description: "Appointment updated successfully." });
         fetchAppointments();
       } else {
         const data = (await response.json()) as { error?: string };
@@ -155,6 +166,25 @@ export default function ReceptionistDashboard() {
           </p>
         </div>
 
+        <div className="pt-2 border-t">
+          <p className="text-sm font-medium mb-2">Reassign Doctor:</p>
+          <select 
+            className="w-full p-2 text-sm rounded-md border bg-background"
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) {
+                updateAppointment(apt.id, { vetId: e.target.value });
+              }
+            }}
+            disabled={updatingId === apt.id}
+          >
+            <option value="" disabled>Change Veterinarian...</option>
+            {veterinarians.map(v => (
+              <option key={v.id} value={v.id}>Dr. {v.name} ({v.specialization})</option>
+            ))}
+          </select>
+        </div>
+
         {apt.reason && (
           <div className="pt-2 border-t">
             <p className="text-sm font-medium mb-1">Reason for visit:</p>
@@ -166,7 +196,7 @@ export default function ReceptionistDashboard() {
         <CardFooter className="flex gap-2 border-t pt-4">
           <Button 
             className="flex-1 bg-green-600 hover:bg-green-700 text-white" 
-            onClick={() => updateStatus(apt.id, 'confirmed')}
+            onClick={() => updateAppointment(apt.id, { status: 'confirmed' })}
             disabled={updatingId === apt.id}
           >
             <CheckCircle className="mr-2 h-4 w-4" /> Accept
@@ -174,7 +204,7 @@ export default function ReceptionistDashboard() {
           <Button 
             variant="destructive" 
             className="flex-1"
-            onClick={() => updateStatus(apt.id, 'cancelled')}
+            onClick={() => updateAppointment(apt.id, { status: 'cancelled' })}
             disabled={updatingId === apt.id}
           >
             <XCircle className="mr-2 h-4 w-4" /> Cancel

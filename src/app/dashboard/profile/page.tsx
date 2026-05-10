@@ -51,6 +51,7 @@ interface UserProfile {
   role: string;
   showPets: number;
   showEmail: number;
+  firebaseUid: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -413,47 +414,76 @@ export default function ProfilePage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
+    // 1. ADMIN BYPASS FLOW (Direct Turso Update)
+    if (user?.email === "admin@petcare.com") {
+      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "New passwords do not match",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setChangingPassword(true);
+      try {
+        const response = await fetch("/api/user/password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword,
+          }),
+        });
+
+        const data = (await response.json()) as { success?: boolean; error?: string };
+
+        if (data.success) {
+          toast({
+            title: "Password changed",
+            description: "Admin password updated in Turso successfully.",
+          });
+          setPasswordDialogOpen(false);
+          setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to change password",
+          variant: "destructive",
+        });
+      } finally {
+        setChangingPassword(false);
+      }
       return;
     }
 
+    // 2. STANDARD USER FLOW (Firebase Email Reset)
+    // For standard users, we don't even use the form; we just trigger the reset email.
+    await handleSendResetEmail();
+  };
+
+  const handleSendResetEmail = async () => {
+    if (!user?.email) return;
+    
     setChangingPassword(true);
-
     try {
-      const response = await fetch("/api/user/password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        }),
+      const { auth } = await import("@/lib/firebase");
+      const { sendPasswordResetEmail } = await import("firebase/auth");
+      
+      await sendPasswordResetEmail(auth, user.email);
+      
+      toast({
+        title: "Reset Email Sent!",
+        description: `A password reset link has been sent to ${user.email}.`,
       });
-
-      const data = (await response.json()) as { success?: boolean; error?: string };
-
-      if (data.success) {
-        toast({
-          title: "Password changed",
-          description: "Your password has been changed successfully",
-        });
-        setPasswordDialogOpen(false);
-        setPasswordForm({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        throw new Error(data.error);
-      }
-    } catch (error) {
+      setPasswordDialogOpen(false);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to change password",
+        description: error.message || "Failed to send reset email.",
         variant: "destructive",
       });
     } finally {
@@ -648,8 +678,13 @@ export default function ProfilePage() {
                 Change your password to keep your account secure
               </p>
             </div>
-            <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>
-              Change Password
+            <Button 
+              variant="outline" 
+              onClick={() => setPasswordDialogOpen(true)}
+              className="group"
+            >
+              <Lock className="mr-2 h-4 w-4 transition-transform group-hover:rotate-12" />
+              {user?.email === "admin@petcare.com" ? "Change Admin Password" : "Reset via Email"}
             </Button>
           </div>
         </CardContent>
@@ -756,48 +791,150 @@ export default function ProfilePage() {
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change Password</DialogTitle>
+            <DialogTitle>
+              {user?.email === "admin@petcare.com" ? "Change Admin Password" : "Reset Password"}
+            </DialogTitle>
             <DialogDescription>
-              Enter your current password and choose a new one
+              {user?.email === "admin@petcare.com" 
+                ? "Update your administrative credentials in Turso." 
+                : "We will send a secure reset link to your registered email address."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            {/* Current Password */}
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <div className="relative">
-                <Input
-                  id="currentPassword"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={passwordForm.currentPassword}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
-                  }
-                  placeholder="Enter current password"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                >
-                  {showCurrentPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+          
+          {user?.email === "admin@petcare.com" ? (
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              {/* Current Password */}
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={passwordForm.currentPassword}
+                    onChange={(e) =>
+                      setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                    }
+                    placeholder="Enter current password"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordForm.newPassword}
+                    onChange={(e) =>
+                      setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                    }
+                    placeholder="Enter new password"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                    }
+                    placeholder="Confirm new password"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="ghost" onClick={() => setPasswordDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={changingPassword}>
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    "Update Password"
                   )}
                 </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-6 py-4">
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                <Mail className="h-6 w-6 shrink-0" />
+                <p className="text-sm">
+                  We will send a reset link to <strong>{user?.email}</strong>. 
+                  Clicking the link will allow you to choose a new password securely through Firebase.
+                </p>
               </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setPasswordDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSendResetEmail} disabled={changingPassword}>
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </Button>
+              </DialogFooter>
             </div>
-
-            {/* New Password */}
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <div className="relative">
-                <Input
-                  id="newPassword"
+          )}
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) =>
