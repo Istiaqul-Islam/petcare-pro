@@ -119,7 +119,10 @@ CREATE TABLE IF NOT EXISTS posts (
     id TEXT PRIMARY KEY,
     userId TEXT NOT NULL,
     content TEXT NOT NULL,
-    image TEXT,
+    images TEXT, -- JSON array of image URLs
+    videos TEXT, -- JSON array of video URLs
+    audios TEXT, -- JSON array of audio URLs
+    isPublic INTEGER DEFAULT 1,
     likesCount INTEGER DEFAULT 0,
     commentsCount INTEGER DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now')),

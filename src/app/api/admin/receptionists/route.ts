@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
         u.avatar,
         GROUP_CONCAT(rd.vetId) as assignedVetIds
       FROM users u
-      JOIN receptionist_doctors rd ON u.id = rd.receptionistId
+      LEFT JOIN receptionist_doctors rd ON u.id = rd.receptionistId
+      WHERE u.role = 'receptionist' OR u.role = 'admin'
       GROUP BY u.id
     `);
 
@@ -50,10 +51,6 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !Array.isArray(vetIds)) {
       return NextResponse.json({ error: "Missing required fields or invalid vetIds." }, { status: 400 });
-    }
-
-    if (vetIds.length < 2) {
-      return NextResponse.json({ error: "A receptionist must be assigned to at least 2 doctors." }, { status: 400 });
     }
 
     // Ensure unique vetIds to avoid primary key violations

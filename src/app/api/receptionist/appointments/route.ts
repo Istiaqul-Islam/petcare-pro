@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const isAdmin = session.role === 'admin';
     const whereClause = isAdmin 
       ? '1=1' 
-      : 'a.vetId IN (SELECT vetId FROM receptionist_doctors WHERE receptionistId = ?)';
+      : '(a.vetId IN (SELECT vetId FROM receptionist_doctors WHERE receptionistId = ?) OR a.vetId IS NULL)';
     const queryArgs = isAdmin ? [] : [session.userId];
 
     const appointments = await db.execute({
@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await requireReceptionist();
     const { appointmentId, status, vetId, notificationMessage } = (await request.json()) as { 
       appointmentId: string; 
       status?: string; 
@@ -101,14 +102,14 @@ export async function PATCH(request: NextRequest) {
     const isAdmin = session.role === 'admin';
     const whereClause = isAdmin
       ? 'a.id = ?'
-      : 'a.id = ? AND a.vetId IN (SELECT vetId FROM receptionist_doctors WHERE receptionistId = ?)';
+      : 'a.id = ? AND (a.vetId IN (SELECT vetId FROM receptionist_doctors WHERE receptionistId = ?) OR a.vetId IS NULL)';
     const queryArgs = isAdmin ? [appointmentId] : [appointmentId, session.userId];
 
     const aptResult = await db.execute({
       sql: `
         SELECT a.id, a.userId, v.name as vetName
         FROM appointments a
-        JOIN veterinarians v ON a.vetId = v.id
+        LEFT JOIN veterinarians v ON a.vetId = v.id
         WHERE ${whereClause}
       `,
       args: queryArgs
@@ -119,7 +120,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const appointmentUserId = aptResult.rows[0].userId;
-    const vetName = aptResult.rows[0].vetName;
+    const vetName = aptResult.rows[0].vetName || "Unassigned Doctor";
     const notificationId = generateId();
 
     const title = status === 'confirmed' ? 'Appointment Confirmed' : (status === 'cancelled' ? 'Appointment Cancelled' : 'Appointment Update');
