@@ -476,8 +476,10 @@ export default function AppointmentsPage() {
         logging: false,
         useCORS: true,
         backgroundColor: "#ffffff",
+        windowWidth: reportRef.current.scrollWidth,
+        windowHeight: reportRef.current.scrollHeight,
         onclone: (clonedDoc) => {
-          // Force-remove oklch colors which html2canvas can't parse
+          // Force-remove oklch colors and ensure full height
           const elements = clonedDoc.getElementsByTagName('*');
           for (let i = 0; i < elements.length; i++) {
             const el = elements[i] as HTMLElement;
@@ -485,6 +487,13 @@ export default function AppointmentsPage() {
             if (style.color.includes('oklch')) el.style.color = '#000000';
             if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = '#ffffff';
             if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
+          }
+          
+          // Ensure the captured element is not clipped
+          const reportEl = clonedDoc.querySelector('[ref="reportRef"]') || clonedDoc.body.querySelector('div[style*="padding: 40px"]');
+          if (reportEl instanceof HTMLElement) {
+            reportEl.style.height = 'auto';
+            reportEl.style.overflow = 'visible';
           }
         }
       });
@@ -1052,10 +1061,10 @@ export default function AppointmentsPage() {
                   </div>
                 </div>
                 <div style={{ backgroundColor: "#ffffff" }}>
-                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Owner Information</h5>
+                  <h5 style={{ fontSize: "11px", fontWeight: "700", color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "12px" }}>Pet Owner Information</h5>
                   <div style={{ backgroundColor: "#ffffff" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", backgroundColor: "#ffffff" }}>
-                      <span style={{ fontSize: "13px", color: "#64748b" }}>Owner:</span>
+                      <span style={{ fontSize: "13px", color: "#64748b" }}>Pet Owner:</span>
                       <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b" }}>{currentUser?.name || "Client"}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "4px", borderBottom: "1px solid #f1f5f9", marginTop: "8px", backgroundColor: "#ffffff" }}>
