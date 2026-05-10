@@ -47,19 +47,19 @@ interface Pet {
 
 interface Vaccination {
   id: string;
-  name: string; -- Matched to schema 'name'
+  name: string; // Matched to schema 'name'
   dateAdministered: string;
   nextDueDate: string;
   notes: string;
-  veterinarian: string; -- Matched to schema 'veterinarian'
+  veterinarian: string; // Matched to schema 'veterinarian'
 }
 
 interface Appointment {
   id: string;
-  type: string; -- Matched to schema 'type'
+  type: string; // Matched to schema 'type'
   status: string;
-  date: string; -- Matched to schema 'date'
-  time: string; -- Matched to schema 'time'
+  date: string; // Matched to schema 'date'
+  time: string; // Matched to schema 'time'
   reason: string;
 }
 
