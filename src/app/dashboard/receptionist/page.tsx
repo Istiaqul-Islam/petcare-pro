@@ -140,18 +140,19 @@ export default function ReceptionistDashboard() {
         logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc) => {
+          // STRIP ALL STYLESHEETS to prevent oklch parsing crashes
+          const styleTags = clonedDoc.getElementsByTagName('style');
+          for (let i = styleTags.length - 1; i >= 0; i--) styleTags[i].remove();
+          const linkTags = clonedDoc.getElementsByTagName('link');
+          for (let i = linkTags.length - 1; i >= 0; i--) {
+            if (linkTags[i].rel === 'stylesheet') linkTags[i].remove();
+          }
+
           const element = clonedDoc.querySelector('[data-report="receptionist-report"]') as HTMLElement;
           if (element) {
             element.style.height = 'auto';
             element.style.overflow = 'visible';
-            const all = element.getElementsByTagName('*');
-            for (let i = 0; i < all.length; i++) {
-              const el = all[i] as HTMLElement;
-              const s = window.getComputedStyle(el);
-              if (s.color.includes('oklch')) el.style.color = '#1e293b';
-              if (s.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
-              if (s.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
-            }
+            element.style.backgroundColor = '#ffffff';
           }
         }
       });

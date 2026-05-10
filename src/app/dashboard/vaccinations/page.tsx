@@ -166,7 +166,8 @@ export default function VaccinationsPage() {
   };
 
   useEffect(() => {
-    if (vaccinations.length > 0) {
+    const cards = document.querySelectorAll(".vaccination-card");
+    if (cards.length > 0) {
       gsap.fromTo(
         ".vaccination-card",
         { opacity: 0, y: 30, scale: 0.95 },
@@ -250,18 +251,20 @@ export default function VaccinationsPage() {
         logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc) => {
+          // STRIP ALL STYLESHEETS to prevent oklch parsing crashes
+          // Our report uses inline styles so it will remain perfectly styled
+          const styleTags = clonedDoc.getElementsByTagName('style');
+          for (let i = styleTags.length - 1; i >= 0; i--) styleTags[i].remove();
+          const linkTags = clonedDoc.getElementsByTagName('link');
+          for (let i = linkTags.length - 1; i >= 0; i--) {
+            if (linkTags[i].rel === 'stylesheet') linkTags[i].remove();
+          }
+
           const element = clonedDoc.querySelector('[data-report="vaccination-report"]') as HTMLElement;
           if (element) {
             element.style.height = 'auto';
             element.style.overflow = 'visible';
-            const all = element.getElementsByTagName('*');
-            for (let i = 0; i < all.length; i++) {
-              const el = all[i] as HTMLElement;
-              const s = window.getComputedStyle(el);
-              if (s.color.includes('oklch')) el.style.color = '#1e293b';
-              if (s.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
-              if (s.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
-            }
+            element.style.backgroundColor = '#ffffff';
           }
         }
       });
@@ -433,11 +436,14 @@ export default function VaccinationsPage() {
       }
 
       // Filter controls animations
-      gsap.fromTo(
-        ".filter-controls",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.6, ease: "power2.out" }
-      );
+      const filterControls = document.querySelector(".filter-controls");
+      if (filterControls) {
+        gsap.fromTo(
+          ".filter-controls",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6, delay: 0.6, ease: "power2.out" }
+        );
+      }
 
       gsap.fromTo(
         ".search-input",
@@ -458,18 +464,21 @@ export default function VaccinationsPage() {
         { opacity: 1, y: 0, duration: 0.6, delay: 1.2, ease: "power2.out" }
       );
 
-      gsap.fromTo(
-        ".vaccination-tab-trigger",
-        { opacity: 0, scale: 0.8 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "back.out(1.7)",
-          delay: 1.4
-        }
-      );
+      const tabTriggers = document.querySelectorAll(".vaccination-tab-trigger");
+      if (tabTriggers.length > 0) {
+        gsap.fromTo(
+          ".vaccination-tab-trigger",
+          { opacity: 0, scale: 0.8 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: "back.out(1.7)",
+            delay: 1.4
+          }
+        );
+      }
 
       // Empty state animations
       if (vaccinations.length === 0) {

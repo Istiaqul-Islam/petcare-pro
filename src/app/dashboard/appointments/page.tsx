@@ -185,16 +185,16 @@ export default function AppointmentsPage() {
   };
 
   useEffect(() => {
-    const cards = document.querySelectorAll('.appointment-card');
+    const cards = document.querySelectorAll(".appointment-card");
     if (cards.length > 0) {
       gsap.fromTo(
-        cards,
-        { opacity: 0, y: 30, scale: 0.95 },
+        ".appointment-card",
+        { opacity: 0, y: 20, scale: 0.95 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.6,
+          duration: 0.5,
           stagger: 0.1,
           ease: "power2.out",
           overwrite: "auto",
@@ -491,20 +491,19 @@ export default function AppointmentsPage() {
         logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc) => {
+          // STRIP ALL STYLESHEETS to prevent oklch parsing crashes
+          const styleTags = clonedDoc.getElementsByTagName('style');
+          for (let i = styleTags.length - 1; i >= 0; i--) styleTags[i].remove();
+          const linkTags = clonedDoc.getElementsByTagName('link');
+          for (let i = linkTags.length - 1; i >= 0; i--) {
+            if (linkTags[i].rel === 'stylesheet') linkTags[i].remove();
+          }
+
           const element = clonedDoc.querySelector('[data-report="appointment-report"]') as HTMLElement;
           if (element) {
             element.style.height = 'auto';
             element.style.overflow = 'visible';
-            
-            // Final deep sanitize in the cloned document
-            const all = element.getElementsByTagName('*');
-            for (let i = 0; i < all.length; i++) {
-              const el = all[i] as HTMLElement;
-              const style = window.getComputedStyle(el);
-              if (style.color.includes('oklch')) el.style.color = '#1e293b';
-              if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
-              if (style.borderColor.includes('oklch')) el.style.borderColor = '#e2e8f0';
-            }
+            element.style.backgroundColor = '#ffffff';
           }
         }
       });
